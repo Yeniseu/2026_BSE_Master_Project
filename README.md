@@ -1,3 +1,3 @@
-# BSE_DataProject
+# BSE_MasterProject
 
-Group project on forecasting US inflation using machine learning techniques
+Master project on forecasting US inflation using machine learning techniques and classical linear models.
