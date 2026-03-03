@@ -54,10 +54,9 @@ all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3)
 #### Calculate Cumulative Absolute Errors ####
 
 #### Sample 1, Horizon 1 ####
-
 all1_1_err <- copy(all1_1)
 cols <- setdiff(names(all1_1_err), "real")
-all1_1_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols]
+all1_1_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols, .SDcols=cols]
 all1_1_err[, real := NULL]
 
 all1_1_cum <- copy(all1_1_err)
@@ -123,11 +122,9 @@ ggsave(
 
 
 #### Sample 1, Horizon 3 ####
-
-
 all1_3_err <- copy(all1_3)
 cols <- setdiff(names(all1_3_err), "real")
-all1_3_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols]
+all1_3_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols, .SDcols=cols]
 all1_3_err[, real := NULL]
 
 all1_3_cum <- copy(all1_3_err)
