@@ -139,7 +139,7 @@ ggplot(all1_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
 
-(Sample1_Step3 <- all1_3_rmse_yearly |>
+(Sample1_Step3 <- all1_3_rmse_yearly[,-c("RW")] |>
   round(2) |>
   gt() |>
   tab_header(title=md("**Yearly RMSE by Model**"), subtitle="3-Step Ahead Out of Sample") |>
