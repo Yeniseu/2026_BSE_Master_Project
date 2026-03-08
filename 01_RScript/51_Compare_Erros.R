@@ -18,22 +18,22 @@ lasso1_3 <- lasso1[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso1_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
-mean1_h1 <- readRDS("03_Output/p1_h1_mean.rds")
+mean1_h1 <- readRDS("03_Output/AR_SM/p1_h1_mean.rds")
 mean1_h1 <- mean1_h1$pred
 mean1_h1 <- as.data.table(mean1_h1)
 setnames(mean1_h1, "V1", "RSM")
 
-mean1_h3 <- readRDS("03_Output/p1_h3_mean.rds")
+mean1_h3 <- readRDS("03_Output/AR_SM/p1_h3_mean.rds")
 mean1_h3 <- mean1_h3$pred
 mean1_h3 <- as.data.table(mean1_h3)
 setnames(mean1_h3, "V1", "RSM")
 
-p1_h1_ar4 <- readRDS("03_Output/p1_h1_ar4.rds")
+p1_h1_ar4 <- readRDS("03_Output/AR_SM/p1_h1_ar4.rds")
 p1_h1_ar4 <- p1_h1_ar4$pred
 p1_h1_ar4 <- as.data.table(p1_h1_ar4)
 setnames(p1_h1_ar4, "V1", "AR")
 
-p1_h3_ar4 <- readRDS("03_Output/p1_h3_ar4.rds")
+p1_h3_ar4 <- readRDS("03_Output/AR_SM/p1_h3_ar4.rds")
 p1_h3_ar4 <- p1_h3_ar4$pred
 p1_h3_ar4 <- as.data.table(p1_h3_ar4)
 setnames(p1_h3_ar4, "V1", "AR")
@@ -56,7 +56,7 @@ all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3)
 #### Sample 1, Horizon 1 ####
 all1_1_err <- copy(all1_1)
 cols <- setdiff(names(all1_1_err), "real")
-all1_1_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols, .SDcols=cols]
+all1_1_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols]
 all1_1_err[, real := NULL]
 
 all1_1_cum <- copy(all1_1_err)
@@ -124,7 +124,7 @@ ggsave(
 #### Sample 1, Horizon 3 ####
 all1_3_err <- copy(all1_3)
 cols <- setdiff(names(all1_3_err), "real")
-all1_3_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols, .SDcols=cols]
+all1_3_err[, (cols) := lapply(.SD, function(x) abs(x - real)), .SDcols = cols]
 all1_3_err[, real := NULL]
 
 all1_3_cum <- copy(all1_3_err)
@@ -207,22 +207,22 @@ lasso2_3 <- lasso2[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso2_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
-mean2_h1 <- readRDS("03_Output/p2_h1_mean.rds")
+mean2_h1 <- readRDS("03_Output/AR_SM/p2_h1_mean.rds")
 mean2_h1 <- mean2_h1$pred
 mean2_h1 <- as.data.table(mean2_h1)
 setnames(mean2_h1, "V1", "RSM")
 
-mean2_h3 <- readRDS("03_Output/p2_h3_mean.rds")
+mean2_h3 <- readRDS("03_Output/AR_SM/p2_h3_mean.rds")
 mean2_h3 <- mean2_h3$pred
 mean2_h3 <- as.data.table(mean2_h3)
 setnames(mean2_h3, "V1", "RSM")
 
-p2_h1_ar4 <- readRDS("03_Output/p2_h1_ar4.rds")
+p2_h1_ar4 <- readRDS("03_Output/AR_SM/p2_h1_ar4.rds")
 p2_h1_ar4 <- p2_h1_ar4$pred
 p2_h1_ar4 <- as.data.table(p2_h1_ar4)
 setnames(p2_h1_ar4, "V1", "AR")
 
-p2_h3_ar4 <- readRDS("03_Output/p2_h3_ar4.rds")
+p2_h3_ar4 <- readRDS("03_Output/AR_SM/p2_h3_ar4.rds")
 p2_h3_ar4 <- p2_h3_ar4$pred
 p2_h3_ar4 <- as.data.table(p2_h3_ar4)
 setnames(p2_h3_ar4, "V1", "AR")

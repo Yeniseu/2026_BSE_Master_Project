@@ -10,7 +10,6 @@ options(scipen=30, digits=3)
 #### Comparison for First Out of Sample Period ####
 
 lasso1 <- readRDS("03_Output/lasso_pred_s1.rds")
-
 lasso1_1 <- lasso1[, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1")]
 setnames(lasso1_1, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
@@ -19,22 +18,22 @@ lasso1_3 <- lasso1[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso1_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
-mean1_h1 <- readRDS("03_Output/p1_h1_mean.rds")
+mean1_h1 <- readRDS("03_Output/AR_SM/p1_h1_mean.rds")
 mean1_h1 <- mean1_h1$pred
 mean1_h1 <- as.data.table(mean1_h1)
 setnames(mean1_h1, "V1", "RSM")
 
-mean1_h3 <- readRDS("03_Output/p1_h3_mean.rds")
+mean1_h3 <- readRDS("03_Output/AR_SM/p1_h3_mean.rds")
 mean1_h3 <- mean1_h3$pred
 mean1_h3 <- as.data.table(mean1_h3)
 setnames(mean1_h3, "V1", "RSM")
 
-p1_h1_ar4 <- readRDS("03_Output/p1_h1_ar4.rds")
+p1_h1_ar4 <- readRDS("03_Output/AR_SM/p1_h1_ar4.rds")
 p1_h1_ar4 <- p1_h1_ar4$pred
 p1_h1_ar4 <- as.data.table(p1_h1_ar4)
 setnames(p1_h1_ar4, "V1", "AR")
 
-p1_h3_ar4 <- readRDS("03_Output/p1_h3_ar4.rds")
+p1_h3_ar4 <- readRDS("03_Output/AR_SM/p1_h3_ar4.rds")
 p1_h3_ar4 <- p1_h3_ar4$pred
 p1_h3_ar4 <- as.data.table(p1_h3_ar4)
 setnames(p1_h3_ar4, "V1", "AR")
@@ -49,8 +48,13 @@ rf1_3 <- rf1_3$pred
 rf1_3 <- as.data.table(rf1_3)
 setnames(rf1_3, "V1", "RF")
 
-all1_1 <- cbind(lasso1_1, mean1_h1, p1_h1_ar4, rf1_1)
-all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3)
+
+llf1   <- readRDS("03_Output/llf_s1.rds")
+llf1_1 <- llf1[, .(LLF = llf1_1)]
+llf1_3 <- llf1[, .(LLF = llf1_3)]
+
+all1_1 <- cbind(lasso1_1, mean1_h1, p1_h1_ar4, rf1_1, llf1_1)
+all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3, llf1_3)
 
 dates <- seq(as.Date("2001-01-01"), as.Date("2015-12-01"), by = "month")
 all1_1[, date := dates]
@@ -164,7 +168,6 @@ gtsave(Sample1_Step3, filename = "03_Output/RMSE/Sample1_Step3.png")
 
 #### Comparison for Second Out of Sample Period ####
 lasso2 <- readRDS("03_Output/lasso_pred_s2.rds")
-
 lasso2_1 <- lasso2[, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1")]
 setnames(lasso2_1, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
@@ -173,22 +176,22 @@ lasso2_3 <- lasso2[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso2_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
-mean2_h1 <- readRDS("03_Output/p2_h1_mean.rds")
+mean2_h1 <- readRDS("03_Output/AR_SM/p2_h1_mean.rds")
 mean2_h1 <- mean2_h1$pred
 mean2_h1 <- as.data.table(mean2_h1)
 setnames(mean2_h1, "V1", "RSM")
 
-mean2_h3 <- readRDS("03_Output/p2_h3_mean.rds")
+mean2_h3 <- readRDS("03_Output/AR_SM/p2_h3_mean.rds")
 mean2_h3 <- mean2_h3$pred
 mean2_h3 <- as.data.table(mean2_h3)
 setnames(mean2_h3, "V1", "RSM")
 
-p2_h1_ar4 <- readRDS("03_Output/p2_h1_ar4.rds")
+p2_h1_ar4 <- readRDS("03_Output/AR_SM/p2_h1_ar4.rds")
 p2_h1_ar4 <- p2_h1_ar4$pred
 p2_h1_ar4 <- as.data.table(p2_h1_ar4)
 setnames(p2_h1_ar4, "V1", "AR")
 
-p2_h3_ar4 <- readRDS("03_Output/p2_h3_ar4.rds")
+p2_h3_ar4 <- readRDS("03_Output/AR_SM/p2_h3_ar4.rds")
 p2_h3_ar4 <- p2_h3_ar4$pred
 p2_h3_ar4 <- as.data.table(p2_h3_ar4)
 setnames(p2_h3_ar4, "V1", "AR")
@@ -203,8 +206,13 @@ rf2_3 <- rf2_3$pred
 rf2_3 <- as.data.table(rf2_3)
 setnames(rf2_3, "V1", "RF")
 
-all2_1 <- cbind(lasso2_1, mean2_h1, p2_h1_ar4, rf2_1)
-all2_3 <- cbind(lasso2_3, mean2_h3, p2_h3_ar4, rf2_3)
+llf2   <- readRDS("03_Output/llf_s2.rds")
+llf2_1 <- llf2[, .(LLF = llf2_1)]
+llf2_3 <- llf2[, .(LLF = llf2_3)]
+
+
+all2_1 <- cbind(lasso2_1, mean2_h1, p2_h1_ar4, rf2_1, llf2_1)
+all2_3 <- cbind(lasso2_3, mean2_h3, p2_h3_ar4, rf2_3, llf2_3)
 
 dates <- seq(
   from = as.Date("2016-01-01"),
@@ -305,18 +313,56 @@ gtsave(Sample2_Step3, filename = "03_Output/RMSE/Sample2_Step3.png")
 
 
 # Shock versus normal
-all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
 # Option 1
+all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
 shock_years <- c(2008, 2009, 2020, 2022)
 all_rmse_shock[, Year_tmp := Year %in% shock_years]
 # Option 2
+all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
 shock_years <- c(2008, 2009, 2010, 2020, 2021, 2022)
 all_rmse_shock[, Year_tmp := Year %in% shock_years]
 # Option 3
+all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
 all_rmse_shock[, Year_tmp := 0]
 all_rmse_shock[Year %in% c(2008, 2009, 2010), Year_tmp := 1]
 all_rmse_shock[Year %in% c(2020, 2021, 2022), Year_tmp := 2]
+# Option 4
+all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
+all_rmse_shock[, Year_tmp := 0]
+all_rmse_shock[Year %in% 2008:2010, Year_tmp := 1]
+all_rmse_shock[Year %in% 2011:2019, Year_tmp := 2]
+all_rmse_shock[Year %in% 2020:2022, Year_tmp := 3]
+all_rmse_shock[Year %in% 2023:2030, Year_tmp := 4]
 
+all_rmse_shock[, Year := Year_tmp]
+all_rmse_shock[, Year_tmp := NULL]
+all_rmse_shock <- all_rmse_shock[, lapply(.SD, mean), by=Year]
+title_shock   <- "**Shock Periods RMSE**"
+(shock_table <- heat_table(all_rmse_shock, title_shock, "1-Step Ahead Out of Sample"))
+gtsave(shock_table, filename = "03_Output/RMSE/shock_table.png")
+
+
+# Shock versus normal 3 SStep
+# Option 1
+all_rmse_shock <- rbind(all1_3_rmse_yearly, all2_3_rmse_yearly)
+shock_years <- c(2008, 2009, 2020, 2022)
+all_rmse_shock[, Year_tmp := Year %in% shock_years]
+# Option 2
+all_rmse_shock <- rbind(all1_3_rmse_yearly, all2_3_rmse_yearly)
+shock_years <- c(2008, 2009, 2010, 2020, 2021, 2022)
+all_rmse_shock[, Year_tmp := Year %in% shock_years]
+# Option 3
+all_rmse_shock <- rbind(all1_3_rmse_yearly, all2_3_rmse_yearly)
+all_rmse_shock[, Year_tmp := 0]
+all_rmse_shock[Year %in% c(2008, 2009, 2010), Year_tmp := 1]
+all_rmse_shock[Year %in% c(2020, 2021, 2022), Year_tmp := 2]
+# Option 4
+all_rmse_shock <- rbind(all1_3_rmse_yearly, all2_3_rmse_yearly)
+all_rmse_shock[, Year_tmp := 0]
+all_rmse_shock[Year %in% 2008:2010, Year_tmp := 1]
+all_rmse_shock[Year %in% 2011:2019, Year_tmp := 2]
+all_rmse_shock[Year %in% 2020:2022, Year_tmp := 3]
+all_rmse_shock[Year %in% 2023:2030, Year_tmp := 4]
 
 all_rmse_shock[, Year := Year_tmp]
 all_rmse_shock[, Year_tmp := NULL]
@@ -324,6 +370,7 @@ all_rmse_shock <- all_rmse_shock[, lapply(.SD, mean), by=Year]
 title_shock   <- "**Shock Periods RMSE**"
 (shock_table <- heat_table(all_rmse_shock, title_shock, "3-Step Ahead Out of Sample"))
 gtsave(shock_table, filename = "03_Output/RMSE/shock_table.png")
+
 
 
 
