@@ -93,17 +93,22 @@ ggplot(all1_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
 
-(Sample1_Step1 <- all1_1_rmse_yearly |>
-  round(2) |>
-  gt() |>
-  tab_header(title=md("**Yearly RMSE by Model**"), subtitle="1-Step Ahead Out of Sample") |>
-  cols_align(align = "center") |>
-  tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
-  data_color(columns = -Year, direction = "row",    
-             palette = c("dodgerblue", "white", "firebrick")) |>
-  tab_options(table.font.names = "Consolas"))
-gtsave(Sample1_Step1, filename = "03_Output/RMSE/Sample1_Step1.png")
+heat_table <- function(data, title, subtitle) {
+  res <- data |>
+    round(2) |>
+    gt() |>
+    tab_header(title=md(title), subtitle=subtitle) |>
+    cols_align(align = "center") |>
+    tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
+    data_color(columns = -Year, direction = "row",    
+               palette = c("dodgerblue", "white", "firebrick")) |>
+    tab_options(table.font.names = "Consolas")
+  return(res)
+}
 
+title    <- "**Yearly RMSE by Model**"
+(Sample1_Step1 <- heat_table(all1_1_rmse_yearly, title, "3-Step Ahead Out of Sample"))
+gtsave(Sample1_Step1, filename = "03_Output/RMSE/Sample1_Step3.png")
 
 # Calculate Errors 3 Step
 all1_3_err <- copy(all1_3)
@@ -139,18 +144,10 @@ ggplot(all1_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
 
-(Sample1_Step3 <- all1_3_rmse_yearly[,-c("RW")] |>
-  round(2) |>
-  gt() |>
-  tab_header(title=md("**Yearly RMSE by Model**"), subtitle="3-Step Ahead Out of Sample") |>
-  cols_align(align = "center") |>
-  tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
-  data_color(columns = -Year, direction = "row",    
-             palette = c("dodgerblue", "white", "firebrick")) |>
-  tab_options(table.font.names = "Consolas"))
+
+
+(Sample1_Step3 <- heat_table(all1_3_rmse_yearly, title, "3-Step Ahead Out of Sample"))
 gtsave(Sample1_Step3, filename = "03_Output/RMSE/Sample1_Step3.png")
-
-
 
 
 
@@ -258,16 +255,10 @@ ggplot(all2_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
 #ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
 
 
-(Sample2_Step1 <- all2_1_rmse_yearly |>
-  round(2) |>
-  gt() |>
-  cols_align(align = "center") |>
-  tab_header(title=md("**Yearly RMSE by Model**"), subtitle="1-Step Ahead Out of Sample") |>
-  tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
-  data_color(columns = -Year, direction = "row",    
-             palette = c("dodgerblue", "white", "firebrick")) |>
-  tab_options(table.font.names = "Consolas"))
+(Sample2_Step1 <- heat_table(all2_1_rmse_yearly, title, "1-Step Ahead Out of Sample"))
 gtsave(Sample2_Step1, filename = "03_Output/RMSE/Sample2_Step1.png")
+
+
 
 
 
@@ -308,14 +299,32 @@ ggplot(all2_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
 #ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
 
 
-(Sample2_Step3 <- all2_3_rmse_yearly |>
-  round(2) |>
-  gt() |>
-  tab_header(title=md("**Yearly RMSE by Model**"), subtitle="3-Step Ahead Out of Sample") |>
-  cols_align(align = "center") |>
-  tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
-  data_color(columns = -Year, direction = "row",    
-             palette = c("dodgerblue", "white", "firebrick")) |>
-  tab_options(table.font.names = "Consolas"))
+(Sample2_Step3 <- heat_table(all2_3_rmse_yearly, title, "3-Step Ahead Out of Sample"))
 gtsave(Sample2_Step3, filename = "03_Output/RMSE/Sample2_Step3.png")
+
+
+
+# Shock versus normal
+all_rmse_shock <- rbind(all1_1_rmse_yearly, all2_1_rmse_yearly)
+# Option 1
+shock_years <- c(2008, 2009, 2020, 2022)
+all_rmse_shock[, Year_tmp := Year %in% shock_years]
+# Option 2
+shock_years <- c(2008, 2009, 2010, 2020, 2021, 2022)
+all_rmse_shock[, Year_tmp := Year %in% shock_years]
+# Option 3
+all_rmse_shock[, Year_tmp := 0]
+all_rmse_shock[Year %in% c(2008, 2009, 2010), Year_tmp := 1]
+all_rmse_shock[Year %in% c(2020, 2021, 2022), Year_tmp := 2]
+
+
+all_rmse_shock[, Year := Year_tmp]
+all_rmse_shock[, Year_tmp := NULL]
+all_rmse_shock <- all_rmse_shock[, lapply(.SD, mean), by=Year]
+title_shock   <- "**Shock Periods RMSE**"
+(shock_table <- heat_table(all_rmse_shock, title_shock, "3-Step Ahead Out of Sample"))
+gtsave(shock_table, filename = "03_Output/RMSE/shock_table.png")
+
+
+
 
