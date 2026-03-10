@@ -5,7 +5,7 @@ library(data.table)
 library(grf)
 library(ggplot2)
 
-rm(list = ls())
+rm(list = ls()) 
 options(print.max = 300, scipen = 30, digits = 5)
 
 source("01_RScript/00_Functions_LLF.R")
@@ -154,10 +154,6 @@ saveRDS(llf_s1, file = "03_Output/llf_s1.rds")
 saveRDS(llf_s2, file = "03_Output/llf_s2.rds")
 
 
-aa <- readRDS("03_Output/llf_s2.rds")
-bb <- data.table(llf2_3 = llf2_3$pred)
-llf_s2 <- cbind(aa,bb)
-saveRDS(llf_s2, file = "03_Output/llf_s2.rds")
 
 
 
