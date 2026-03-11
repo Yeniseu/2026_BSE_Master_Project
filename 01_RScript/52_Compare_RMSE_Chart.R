@@ -18,6 +18,16 @@ lasso1_3 <- lasso1[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso1_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
+lasso1_labor <- readRDS("03_Output/lasso_pred_s1_labor_indicators.rds")
+lasso1_1_labor <- lasso1_labor[, c("lasso_l1", "ridge_l1", "elnet_l1")]
+setnames(lasso1_1_labor, c("lasso_l1", "ridge_l1", "elnet_l1"),
+         c("LASSO_L", "Ridge_L", "ElNet_L"))
+
+lasso1_3_labor <- lasso1_labor[, c("lasso_l3", "ridge_l3", "elnet_l3")]
+setnames(lasso1_3_labor, c("lasso_l3", "ridge_l3", "elnet_l3"),
+         c("LASSO_L", "Ridge_L", "ElNet_L"))
+
+
 mean1_h1 <- readRDS("03_Output/AR_SM/p1_h1_mean.rds")
 mean1_h1 <- mean1_h1$pred
 mean1_h1 <- as.data.table(mean1_h1)
@@ -53,8 +63,8 @@ llf1   <- readRDS("03_Output/llf_s1.rds")
 llf1_1 <- llf1[, .(LLF = llf1_1)]
 llf1_3 <- llf1[, .(LLF = llf1_3)]
 
-all1_1 <- cbind(lasso1_1, mean1_h1, p1_h1_ar4, rf1_1, llf1_1)
-all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3, llf1_3)
+all1_1 <- cbind(lasso1_1, mean1_h1, p1_h1_ar4, rf1_1, llf1_1, lasso1_1_labor)
+all1_3 <- cbind(lasso1_3, mean1_h3, p1_h3_ar4, rf1_3, llf1_3, lasso1_3_labor)
 
 dates <- seq(as.Date("2001-01-01"), as.Date("2015-12-01"), by = "month")
 all1_1[, date := dates]
@@ -194,6 +204,15 @@ lasso2_3 <- lasso2[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso2_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 
+lasso2_labor <- readRDS("03_Output/lasso_pred_s2_labor_indicators.rds")
+lasso2_1_labor <- lasso2_labor[, c("lasso_l1", "ridge_l1", "elnet_l1")]
+setnames(lasso2_1_labor, c("lasso_l1", "ridge_l1", "elnet_l1"),
+         c("LASSO_L", "Ridge_L", "ElNet_L"))
+
+lasso2_3_labor <- lasso2_labor[, c("lasso_l3", "ridge_l3", "elnet_l3")]
+setnames(lasso2_3_labor, c("lasso_l3", "ridge_l3", "elnet_l3"),
+         c("LASSO_L", "Ridge_L", "ElNet_L"))
+
 mean2_h1 <- readRDS("03_Output/AR_SM/p2_h1_mean.rds")
 mean2_h1 <- mean2_h1$pred
 mean2_h1 <- as.data.table(mean2_h1)
@@ -229,8 +248,8 @@ llf2_1 <- llf2[, .(LLF = llf2_1)]
 llf2_3 <- llf2[, .(LLF = llf2_3)]
 
 
-all2_1 <- cbind(lasso2_1, mean2_h1, p2_h1_ar4, rf2_1, llf2_1)
-all2_3 <- cbind(lasso2_3, mean2_h3, p2_h3_ar4, rf2_3, llf2_3)
+all2_1 <- cbind(lasso2_1, mean2_h1, p2_h1_ar4, rf2_1, llf2_1, lasso2_1_labor)
+all2_3 <- cbind(lasso2_3, mean2_h3, p2_h3_ar4, rf2_3, llf2_3, lasso2_3_labor)
 
 dates <- seq(
   from = as.Date("2016-01-01"),
