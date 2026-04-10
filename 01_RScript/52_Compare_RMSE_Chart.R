@@ -430,3 +430,27 @@ title_shock   <- "**Shock Periods RMSE**"
 gtsave(shock_table, filename = "03_Output/RMSE/ShockTable_Step3.png")
 
 
+mean_errs <- colMeans(all_rmse_shock[, -c("Year")])
+weights   <- (1/(mean_errs/max(mean_errs)))^4
+shock_table_weighted <- all_rmse_shock
+shock_table_weighted[, Phil := NA]
+VarSels <- c("LASSO", "Ridge", "ElNet")
+shock_table_weighted[, VarSel := weighted.mean(.SD, weigths[names(weights) %in% VarSels]),
+                     .SDcols = VarSels, by=seq(nrow(shock_table_weighted))]
+shock_table_weighted[, NonLin := NA]
+VarSel_NonLins <- c("RF", "LLF")
+shock_table_weighted[, VarSel_NonLin := weighted.mean(.SD, weigths[names(weights) %in% VarSel_NonLins]),
+                     .SDcols = VarSel_NonLins, by=seq(nrow(shock_table_weighted))]
+shock_table_weighted <- shock_table_weighted[, .(Year, Phil, VarSel, NonLin, VarSel_NonLin)]
+(shock_table_wei <- gt_table_shocks(shock_table_weighted[!is.na(Year)], title_shock, "3-Step Ahead Out of Sample"))
+gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3.png")
+# Phillips Curve
+# Adaptive Variable Selection (VarSel)
+# Non-Linearities (Non-Lin)
+# Non-Lin and VarSel
+
+
+
+
+
+
