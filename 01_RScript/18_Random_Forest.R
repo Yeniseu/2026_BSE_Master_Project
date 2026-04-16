@@ -19,9 +19,18 @@ dim(fred)
 
 setnames(fred, "CPIAUCSL", "inf")
 setcolorder(fred, c("date", "inf"))
+labor_indicators <- c(
+  "HWI","HWIURATIO","CLF16OV","CE16OV","UNRATE","UEMPMEAN","UEMPLT5","UEMP5TO14",
+  "UEMP15OV","UEMP15T26","UEMP27OV","CLAIMSx","PAYEMS","USGOOD","CES1021000001",
+  "USCONS","MANEMP","DMANEMP","NDMANEMP","SRVPRD","USTPU","USWTRADE","USTRADE",
+  "USFIRE","USGOVT","CES0600000007","AWOTMAN","AWHMAN","NAPMEI","CES0600000008",
+  "CES2000000008","CES3000000008"
+)
+labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
+#fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)]  # Open for only labor indicators
+
 
 #### TUNING ####
-
 Y <- fred[date < "2001-01-01"]
 Y <- Y[, date := NULL]
 Y <- as.matrix(Y)
@@ -31,9 +40,11 @@ dim(Y)
 nprev <- 120
 
 # mtry grid
-p = 520 # number of features
+p = ncol(Y)*4 # number of features
 mtry_grid <- c(2, 3, 5, 8, 10, 15, 25, round(p/10), round(p/8), round(p/6), round(p/4),
                round(p/3), round(p/2))
+
+mtry_grid <- c(2,round(p/20), round(p/10), round(p/5), round(p/3), round(p/2))
 
 results_mtry <- data.frame(
   mtry = mtry_grid,
@@ -97,10 +108,10 @@ ggsave(
 #### PREDICTIONS ####
 
 # Tuning Result: Best mtry result
-best_mtry <- 52
+#best_mtry <- 52
+#best_mtry <- 18
 
 # FIRST Out of Sample Predictions: 2001-2015
-
 Y <- fred[date < "2016-01-01"]
 Y[inf == min(inf), date] # "2008-11-01"
 Y <- Y[, date := NULL]
@@ -117,13 +128,15 @@ nprev <- 180
 
 set.seed(123)
 rf1_1 <- rf.rolling.window(Y,nprev,1,1)
-saveRDS(rf1_1, file= "03_Output/rf1_1.rds")
+#saveRDS(rf1_1, file= "03_Output/rf1_1.rds")
+#saveRDS(rf1_1, file= "03_Output/rf1_1_labor.rds")
 
 rf1_1$errors
 #rf1_1$pred
 
 rf1_3 <- rf.rolling.window(Y,nprev,1,3)
-saveRDS(rf1_3, file= "03_Output/rf1_3.rds")
+#saveRDS(rf1_3, file= "03_Output/rf1_3.rds")
+#saveRDS(rf1_3, file= "03_Output/rf1_3_labor.rds")
 
 rf1_3$errors
 #rf1_3$pred
@@ -133,7 +146,8 @@ rf1_3$errors
 # SECOND Out of Sample Predictions: 2016-2024
 
 # Tuning Result: Best mtry result
-best_mtry <- 52
+#best_mtry <- 52
+#best_mtry <- 18
 
 Y <- fred
 Y <- Y[, date := NULL]
@@ -145,13 +159,15 @@ nprev <- 108
 
 set.seed(123)
 rf2_1 <- rf.rolling.window(Y,nprev,1,1)
-saveRDS(rf2_1, file= "03_Output/rf2_1.rds")
+#saveRDS(rf2_1, file= "03_Output/rf2_1.rds")
+#saveRDS(rf2_1, file= "03_Output/rf2_1_labor.rds")
 
 rf2_1$errors
 #rf2_1$pred
 
 rf2_3 <- rf.rolling.window(Y,nprev,1,3)
-saveRDS(rf2_3, file= "03_Output/rf2_3.rds")
+#saveRDS(rf2_3, file= "03_Output/rf2_3.rds")
+#saveRDS(rf2_3, file= "03_Output/rf2_3_labor.rds")
 
 rf2_3$errors
 #rf2_3$pred

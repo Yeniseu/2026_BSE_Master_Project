@@ -17,9 +17,18 @@ setDT(fred)
 
 setnames(fred, "CPIAUCSL", "inf")
 setcolorder(fred, c("date", "inf"))
+labor_indicators <- c(
+  "HWI","HWIURATIO","CLF16OV","CE16OV","UNRATE","UEMPMEAN","UEMPLT5","UEMP5TO14",
+  "UEMP15OV","UEMP15T26","UEMP27OV","CLAIMSx","PAYEMS","USGOOD","CES1021000001",
+  "USCONS","MANEMP","DMANEMP","NDMANEMP","SRVPRD","USTPU","USWTRADE","USTRADE",
+  "USFIRE","USGOVT","CES0600000007","AWOTMAN","AWHMAN","NAPMEI","CES0600000008",
+  "CES2000000008","CES3000000008"
+)
+labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
+#fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)]  # Open for only labor indicators
+
 
 #### TUNING: validation sample 1991-2000 ####
-
 Y_val <- copy(fred[date < "2001-01-01"])
 Y_val_mat <- as.matrix(Y_val[, date := NULL])
 
@@ -55,7 +64,6 @@ mtry_grid <- mtry_grid[mtry_grid <= p_base]
 
 
 #### FIRST OOS PERIOD: 2001-2015 ####
-
 Y1 <- copy(fred[date < "2016-01-01"])
 
 # Reproduce your crisis dummy logic
@@ -150,9 +158,10 @@ llf2_3$errors
 
 llf_s1 <- data.table(llf1_1 = llf1_1$pred, llf1_3 = llf1_3$pred)
 llf_s2 <- data.table(llf2_1 = llf2_1$pred, llf2_3 = llf2_3$pred)
-saveRDS(llf_s1, file = "03_Output/llf_s1.rds")
-saveRDS(llf_s2, file = "03_Output/llf_s2.rds")
-
+#saveRDS(llf_s1, file = "03_Output/llf_s1.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor.rds")
 
 
 

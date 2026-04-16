@@ -50,13 +50,14 @@ frcst_rol_win <- function(Y, frc_start_date, formula, steps = 12, plot=T) {
   save.pred <- Y[, 1:2]  # Create same ts object
   cat("\n iteration \n")
   forecast_dates <- time(Y)[time(Y) >= frc_start_date]
+  #browser()
+  environment(formula) <- environment()
   for(i in 1:length(forecast_dates)){
-    
     start_t <- time(Y)[i]
     end_t   <- forecast_dates[i] - 1/frequency(Y)
     Y_window  <- window(Y, start = start_t, end = end_t)
     Yf_window <- window(Y, start = end_t+1/frequency(Y), end = end_t+ steps*(1/frequency(Y))) 
-    res_model <- dynlm(formula, Y_window)
+    res_model <- dynlm(formula, data = Y_window)
     
     preds    <- predict(res_model, newdata = Yf_window)
     preds_ts <- ts(preds,start=time(Yf_window)[[1]], frequency = 12)
@@ -66,7 +67,7 @@ frcst_rol_win <- function(Y, frc_start_date, formula, steps = 12, plot=T) {
     new_coefs <- c("start"=start_t, "end"=end_t, res_model$coefficients)
     save.coef <- rbind(save.coef, as.list(new_coefs))
     
-    cat((1+npred-i),"")
+    #cat((1+npred-i),"")
   }
   browser()
   real <- Y[,indice]
