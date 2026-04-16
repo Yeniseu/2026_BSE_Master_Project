@@ -430,18 +430,23 @@ title_shock   <- "**Shock Periods RMSE**"
 gtsave(shock_table, filename = "03_Output/RMSE/ShockTable_Step3.png")
 
 
+
+### Weighted Model Results
 mean_errs <- colMeans(all_rmse_shock[, -c("Year")])
 weights   <- (1/(mean_errs/max(mean_errs)))^4
-shock_table_weighted <- all_rmse_shock
-shock_table_weighted[, Phil := NA]
+shock_table_weighted <- copy(all_rmse_shock)
+VarSels_tmp <- c("LASSO_L", "Ridge_L", "ElNet_L")
+shock_table_weighted[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_tmp]),
+                     .SDcols = VarSels_tmp, by=seq(nrow(shock_table_weighted))]
 VarSels <- c("LASSO", "Ridge", "ElNet")
-shock_table_weighted[, VarSel := weighted.mean(.SD, weigths[names(weights) %in% VarSels]),
+shock_table_weighted[, VarSel := weighted.mean(.SD, weights[names(weights) %in% VarSels]),
                      .SDcols = VarSels, by=seq(nrow(shock_table_weighted))]
 shock_table_weighted[, NonLin := NA]
 VarSel_NonLins <- c("RF", "LLF")
-shock_table_weighted[, VarSel_NonLin := weighted.mean(.SD, weigths[names(weights) %in% VarSel_NonLins]),
+shock_table_weighted[, VarSel_NonLin := weighted.mean(.SD, weights[names(weights) %in% VarSel_NonLins]),
                      .SDcols = VarSel_NonLins, by=seq(nrow(shock_table_weighted))]
-shock_table_weighted <- shock_table_weighted[, .(Year, Phil, VarSel, NonLin, VarSel_NonLin)]
+shock_table_weighted <- shock_table_weighted[, .(Year, Phil_Lasso, VarSel, NonLin, VarSel_NonLin)]
+setnames(shock_table_weighted, c("Phil_Lasso", "VarSel", "NonLin", "VarSel_NonLin"), c("Linear Phillips Curve", "Linear with Variable Selection", "Non-Linear Phillips Curve", "Non-Linear and Variable Selection"))
 (shock_table_wei <- gt_table_shocks(shock_table_weighted[!is.na(Year)], title_shock, "3-Step Ahead Out of Sample"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3.png")
 # Phillips Curve
