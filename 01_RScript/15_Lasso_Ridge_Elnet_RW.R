@@ -94,7 +94,7 @@ npred2 <- nrow(fred) - fred[, which(date=="2015-12-01")]  # 108 as of 2024-12-01
 blam_l2 <- blam_l1
 blam_r2 <- blam_r1
 blam_e2 <- blam_e1
-balp2   <- balp1
+balp2   <- balp_e1
 lasso_s2_l1 <- lasso_roll_win(dt_s2, npred2, 1, lag=1, alpha=1    , lambda=blam_l2)
 lasso_s2_l3 <- lasso_roll_win(dt_s2, npred2, 1, lag=3, alpha=1    , lambda=blam_l1)
 ridge_s2_l1 <- lasso_roll_win(dt_s2, npred2, 1, lag=1, alpha=0    , lambda=blam_r2)
