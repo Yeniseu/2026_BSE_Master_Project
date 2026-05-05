@@ -9,6 +9,8 @@ library(gt)
 library(glmnet)
 library(quadprog)
 options(scipen=30, digits=3)
+options(datatable.print.trunc.cols = T)
+options(datatable.print.nrows      = 15)
 #### Comparison for First Out of Sample Period ####
 
 lasso1 <- readRDS("03_Output/lasso_pred_s1.rds")
@@ -478,7 +480,7 @@ shock_table_weighted[10, 1] <- "Average All"
 (shock_table_wei <- gt_table_shocks(shock_table_weighted[!is.na(Year)], title_shock, "3-Step Ahead"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped.png")
 
-plot_rmse
+
 # Convert to long format
 plot_rmse <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
 plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
@@ -549,7 +551,12 @@ tmp_wei <- matrix(w2, nrow=nrow(tmp), ncol = length(w2), byrow = T)
 all_3[, const_2 := rowSums(tmp*tmp_wei)]
 
 ### Look at the results
-all_3_rmse_yearly <- copy(all_3)
+# Calculate Errors
+all_3_err <- copy(all_3)
+cols <- setdiff(names(all_3_err), c("real", "date"))
+all_3_err[, (cols) := lapply(.SD, function(x) x - real), .SDcols = cols]
+
+all_3_rmse_yearly <- copy(all_3_err)
 all_3_rmse_yearly[, date := year(date)]
 all_3_rmse_yearly <- all_3_rmse_yearly[, (cols) := lapply(.SD, function(x) sqrt(mean(x^2))), by = "date", .SDcols=cols]
 all_3_rmse_yearly <- unique(all_3_rmse_yearly[, -c("real")])
@@ -559,62 +566,63 @@ all_3_rmse_yearly
 
 # Shock versus normal 3 SStep
 # Option 5
-all_rmse_shock <- all_3_rmse_yearly
-all_rmse_shock[Year %in% 2002:2004, Year_tmp := "2002-2004"]
-all_rmse_shock[Year %in% 2005:2007, Year_tmp := "2005-2007"]
-all_rmse_shock[Year %in% 2008:2010, Year_tmp := "2008-2010"]
-all_rmse_shock[Year %in% 2011:2013, Year_tmp := "2011-2013"]
-all_rmse_shock[Year %in% 2014:2016, Year_tmp := "2014-2016"]
-all_rmse_shock[Year %in% 2017:2019, Year_tmp := "2017-2019"]
-all_rmse_shock[Year %in% 2020:2022, Year_tmp := "2020-2022"]
-all_rmse_shock[Year %in% 2023:2025, Year_tmp := "2023-2025"]
+all_rmse_ensemble <- copy(all_3_rmse_yearly)
+all_rmse_ensemble[Year %in% 2002:2004, Year_tmp := "2002-2004"]
+all_rmse_ensemble[Year %in% 2005:2007, Year_tmp := "2005-2007"]
+all_rmse_ensemble[Year %in% 2008:2010, Year_tmp := "2008-2010"]
+all_rmse_ensemble[Year %in% 2011:2013, Year_tmp := "2011-2013"]
+all_rmse_ensemble[Year %in% 2014:2016, Year_tmp := "2014-2016"]
+all_rmse_ensemble[Year %in% 2017:2019, Year_tmp := "2017-2019"]
+all_rmse_ensemble[Year %in% 2020:2022, Year_tmp := "2020-2022"]
+all_rmse_ensemble[Year %in% 2023:2025, Year_tmp := "2023-2025"]
 # Get the res
-all_rmse_shock[, Year := Year_tmp]
-all_rmse_shock[, Year_tmp := NULL]
-all_rmse_shock <- all_rmse_shock[, lapply(.SD, mean), by=Year]
+all_rmse_ensemble[, Year := Year_tmp]
+all_rmse_ensemble[, Year_tmp := NULL]
+all_rmse_ensemble <- all_rmse_ensemble[, lapply(.SD, mean), by=Year]
 title_shock   <- "**Out of Sample RMSE**"
-all_rmse_shock <- all_rmse_shock[!is.na(Year)]
-all_rmse_shock <- rbind(all_rmse_shock, t(colSums(all_rmse_shock[, -c("Year")])), fill=T)
-all_rmse_shock[.N, Year := "Average"]
-(shock_table <- gt_table_shocks(all_rmse_shock[!is.na(Year)], title_shock, "3-Step Ahead"))
+all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
+all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
+all_rmse_ensemble[.N, Year := "Average"]
+(shock_table_ensemble <- gt_table_shocks(all_rmse_ensemble[!is.na(Year)], title_shock, "3-Step Ahead"))
 #gtsave(shock_table, filename = "03_Output/RMSE/ShockTable_Step3_Ensemble.png")
 
 ### Weighted Model Results
-mean_errs <- colMeans(all_rmse_shock[Year!="Average", -c("Year")])
+mean_errs <- colMeans(all_rmse_ensemble[Year!="Average", -c("Year")])
 weights_first
 weights_new   <- (1/(mean_errs/max(mean_errs)))^4
 weights_second <- c(weights_first, weights_new[(length(weights_new)-2):length(weights_new)])
 weights <- weights_second
-shock_table_weighted <- copy(all_rmse_shock)
+shock_table_ens_wei <- copy(all_rmse_ensemble)
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
-shock_table_weighted[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
-                     .SDcols = VarSels_labor, by=seq(nrow(shock_table_weighted))]
+shock_table_ens_wei[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
+                     .SDcols = VarSels_labor, by=seq(nrow(shock_table_ens_wei))]
 VarSels <- c("LASSO", "Ridge", "ElNet")
-shock_table_weighted[, VarSel := weighted.mean(.SD, weights[names(weights) %in% VarSels]),
-                     .SDcols = VarSels, by=seq(nrow(shock_table_weighted))]
+shock_table_ens_wei[, VarSel := weighted.mean(.SD, weights[names(weights) %in% VarSels]),
+                     .SDcols = VarSels, by=seq(nrow(shock_table_ens_wei))]
 nonlin <- c("RF_L", "LLF_L")
-shock_table_weighted[, NonLin := weighted.mean(.SD, weights[names(weights) %in% nonlin]),
-                     .SDcols = nonlin, by=seq(nrow(shock_table_weighted))]
+shock_table_ens_wei[, NonLin := weighted.mean(.SD, weights[names(weights) %in% nonlin]),
+                     .SDcols = nonlin, by=seq(nrow(shock_table_ens_wei))]
 VarSel_NonLins <- c("RF", "LLF")
-shock_table_weighted[, VarSel_NonLin := weighted.mean(.SD, weights[names(weights) %in% VarSel_NonLins]),
-                     .SDcols = VarSel_NonLins, by=seq(nrow(shock_table_weighted))]
+shock_table_ens_wei[, VarSel_NonLin := weighted.mean(.SD, weights[names(weights) %in% VarSel_NonLins]),
+                     .SDcols = VarSel_NonLins, by=seq(nrow(shock_table_ens_wei))]
 Ensembles <- c("best_5",	"const_1",	"const_2")
-shock_table_weighted[, Ensembles := weighted.mean(.SD, weights[names(weights) %in% Ensembles]),
-                     .SDcols = Ensembles, by=seq(nrow(shock_table_weighted))]
-shock_table_weighted <- shock_table_weighted[, .(Year, Phil_Lasso, VarSel, NonLin, VarSel_NonLin, Ensembles)]
-#shock_table_weighted <- shock_table_weighted[, .(Year, Phil_Lasso, VarSel_NonLin, Ensembles)]
+shock_table_ens_wei[, Ensembles := weighted.mean(.SD, weights[names(weights) %in% Ensembles]),
+                     .SDcols = Ensembles, by=seq(nrow(shock_table_ens_wei))]
+shock_table_ens_wei <- shock_table_ens_wei[, .(Year, Phil_Lasso, VarSel, NonLin, VarSel_NonLin, Ensembles)]
+#shock_table_ens_wei <- shock_table_ens_wei[, .(Year, Phil_Lasso, VarSel_NonLin, Ensembles)]
 
-setnames(shock_table_weighted, c("Phil_Lasso", "VarSel", "NonLin", "VarSel_NonLin"), c("Linear Phillips Curve", "Linear with Variable Selection", "Non-Linear Phillips Curve", "Non-Linear and Variable Selection"))
-#setnames(shock_table_weighted, c("Phil_Lasso", "VarSel_NonLin"), c("Linear Phillips Curve", "Non-Linear and Variable Selection"))
-shock_table_weighted <- shock_table_weighted[Year != "Average"]
-shock_table_weighted <- rbind(shock_table_weighted, data.table(t(c(NA, colMeans(shock_table_weighted[,-1])))), use.names=F)
-shock_table_weighted[10, 1] <- "Average All"
-(shock_table_wei <- gt_table_shocks(shock_table_weighted[!is.na(Year)], title_shock, "3-Step Ahead"))
-#gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped.png")
+setnames(shock_table_ens_wei, c("Phil_Lasso", "VarSel", "NonLin", "VarSel_NonLin", "Ensembles"), c("Linear Phillips Curve", "Linear with Variable Selection", "Non-Linear Phillips Curve", "Non-Linear and Var. Selection", "Ensemble Models"))
+shock_table_ens_wei <- shock_table_ens_wei[Year != "Average"]
+shock_table_ens_wei <- rbind(shock_table_ens_wei, data.table(t(c(NA, colMeans(shock_table_ens_wei[-(1:3),-1])))), use.names=F)
+shock_table_ens_wei[9, 1] <- "Average After 2010"
+shock_table_ens_wei <- rbind(shock_table_ens_wei, data.table(t(c(NA, colMeans(shock_table_ens_wei[,-1])))), use.names=F)
+shock_table_ens_wei[10, 1] <- "Average All"
+(shock_table_wei <- gt_table_shocks(shock_table_ens_wei[!is.na(Year)], title_shock, "3-Step Ahead"))
+gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped_Ensemble.png")
 
 
-# Convert to long format
-plot_rmse <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
+# Plot RMSE Figure with Ensemble
+plot_rmse <- shock_table_ens_wei[!is.na(Year)][!Year %in% c("Average All", "Average After 2010")]
 plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
 ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
@@ -625,7 +633,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     plot.subtitle = element_text(hjust = 0.5),
     legend.position = "top",  legend.title = element_blank()
   )
-#ggsave("03_Output/RMSE/RMSE_Chart_3_Months.png")
+ggsave("03_Output/RMSE/RMSE_Chart_3_Months_Ensemble.png")
 
 
 
@@ -637,29 +645,6 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
 
 
 
-
-
-
-
-
-
-all2_3_err[, (cols) := lapply(.SD, function(x) x - real), .SDcols = cols]
-all2_3_err_long <- melt(all2_3_err[, -c("real")], id.vars = "date") 
-
-
-mean_errs <- colMeans(all_rmse_shock[, -c("Year")])
-weights   <- (1/(mean_errs/max(mean_errs)))^4
-shock_table_weighted <- copy(all_rmse_shock)
-
-
-
-all2_3_rmse_yearly <- copy(all2_3_err)
-all2_3_rmse_yearly[, date := year(date)]
-all2_3_rmse_yearly <- all2_3_rmse_yearly[, (cols) := lapply(.SD, function(x) sqrt(mean(x^2))), by = "date", .SDcols=cols]
-all2_3_rmse_yearly <- unique(all2_3_rmse_yearly[, -c("real")])
-setnames(all2_3_rmse_yearly, "date", "Year")
-all2_3_rmse_yearly_long <- melt(all2_3_rmse_yearly, id.vars = "Year") 
-all2_3_rmse_yearly
 
 
 
