@@ -625,6 +625,10 @@ gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped_Ense
 plot_rmse <- shock_table_ens_wei[!is.na(Year)][!Year %in% c("Average All", "Average After 2010")]
 plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
 ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
+  annotate("rect", xmin = 2.5, xmax = 3.5, ymin = -Inf, ymax = Inf, 
+           fill = "darkgrey", alpha = 0.2) +
+  annotate("rect", xmin = 6.5, xmax = 7.5, ymin = -Inf, ymax = Inf, 
+           fill = "darkgrey", alpha = 0.2) +
   geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
   theme(
@@ -637,6 +641,27 @@ ggsave("03_Output/RMSE/RMSE_Chart_3_Months_Ensemble.png")
 
 
 
+ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
+  # Adding the grey background for shock periods (Positions 3 and 7)
+  annotate("rect", xmin = 2.5, xmax = 3.5, ymin = -Inf, ymax = Inf, 
+           fill = "darkgrey", alpha = 0.2) +
+  annotate("rect", xmin = 6.5, xmax = 7.5, ymin = -Inf, ymax = Inf, 
+           fill = "darkgrey", alpha = 0.2) +
+  # Your original layers
+  geom_line(size = 1) + 
+  geom_point(size = 2) + 
+  theme_minimal() +
+  labs(title = "Out of Sample RMSE", 
+       subtitle = "3-Months Ahead", 
+       x = "", 
+       y = "RMSE") +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "top", 
+    legend.title = element_blank()
+  )
 
 
 
