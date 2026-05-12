@@ -135,8 +135,7 @@ runrf_second=function(Y,indice,lag){
   return(list("model"=model,"pred"=pred))
 }
 
-
-rf.rolling.window_second=function(Y,nprev,indice=1,lag=1){
+rf.rolling.window_second=function(Y,nprev,indice=1,lag=1, nfeature = best_mtry){
   
   save.importance=list()
   save.pred=matrix(NA,nprev,1)
