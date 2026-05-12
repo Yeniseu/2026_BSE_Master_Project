@@ -38,6 +38,7 @@ rf.rolling.window_tune_mtry=function(Y,nprev,indice=1,lag=1, nfeature){
     Y.window=Y[(1+nprev-i):(nrow(Y)-i),]
     random_forest=runrf_val_mtry(Y.window,indice,lag,nfeature)
     save.pred[(1+nprev-i),]=random_forest$pred
+    #save.importance[[i]]=importance(random_forest$model)
     save.importance[[1 + nprev - i]] = importance(random_forest$model)
     cat("iteration",(1+nprev-i),"\n")
   }
@@ -61,6 +62,8 @@ rf.rolling.window_tune_mtry=function(Y,nprev,indice=1,lag=1, nfeature){
 # rf function
 runrf=function(Y,indice,lag, nfeature){
   
+  dum=Y[,ncol(Y)]
+  Y=Y[,-ncol(Y)]
   comp=princomp(scale(Y,scale=FALSE))
   Y2=cbind(Y,comp$scores[,1:4])
   aux=embed(Y2,4+lag)
@@ -74,8 +77,10 @@ runrf=function(Y,indice,lag, nfeature){
     X.out=tail(X.out,1)[1:ncol(X)]
   }
   
-  model=randomForest(X,y,importance = TRUE, mtry = nfeature)
-  pred=predict(model,X.out)
+  dum=tail(dum,length(y))
+  
+  model=randomForest(cbind(X,dum),y,importance = TRUE, mtry = nfeature)
+  pred=predict(model,c(X.out,0))
   
   return(list("model"=model,"pred"=pred))
 }
@@ -90,6 +95,7 @@ rf.rolling.window=function(Y,nprev,indice=1,lag=1,nfeature = best_mtry){
     Y.window=Y[(1+nprev-i):(nrow(Y)-i),]
     random_forest=runrf(Y.window,indice,lag,nfeature)
     save.pred[(1+nprev-i),]=random_forest$pred
+    #save.importance[[i]]=importance(random_forest$model)
     save.importance[[1 + nprev - i]] = importance(random_forest$model)
     cat("iteration",(1+nprev-i),"\n")
   }
@@ -108,7 +114,7 @@ rf.rolling.window=function(Y,nprev,indice=1,lag=1,nfeature = best_mtry){
 
 # SECOND OUT OF SAMPLE PERIOD: 2016-2024
 
-runrf_second=function(Y,indice,lag,nfeature){
+runrf_second=function(Y,indice,lag){
   comp=princomp(scale(Y,scale=FALSE))
   Y2=cbind(Y,comp$scores[,1:4])
   aux=embed(Y2,4+lag)
@@ -123,12 +129,11 @@ runrf_second=function(Y,indice,lag,nfeature){
   }
   
   
-  model=randomForest(X,y,importance=TRUE, mtry = nfeature)
+  model=randomForest(X,y,importance=TRUE)
   pred=predict(model,X.out)
   
   return(list("model"=model,"pred"=pred))
 }
-
 
 rf.rolling.window_second=function(Y,nprev,indice=1,lag=1, nfeature = best_mtry){
   
@@ -136,9 +141,9 @@ rf.rolling.window_second=function(Y,nprev,indice=1,lag=1, nfeature = best_mtry){
   save.pred=matrix(NA,nprev,1)
   for(i in nprev:1){
     Y.window=Y[(1+nprev-i):(nrow(Y)-i),]
-    random_forest=runrf_second(Y.window,indice,lag,nfeature)
+    random_forest=runrf_second(Y.window,indice,lag)
     save.pred[(1+nprev-i),]=random_forest$pred
-    save.importance[[1 + nprev - i]] = importance(random_forest$model)
+    save.importance[[i]]=importance(random_forest$model)
     cat("iteration",(1+nprev-i),"\n")
   }
   
@@ -150,5 +155,12 @@ rf.rolling.window_second=function(Y,nprev,indice=1,lag=1, nfeature = best_mtry){
   mae=mean(abs(tail(real,nprev)-save.pred))
   errors=c("rmse"=rmse,"mae"=mae)
   
-  return(list("pred"=save.pred,"real"=real,"errors"=errors,"save.importance"=save.importance))
+  return(list("pred"=save.pred,"errors"=errors,"save.importance"=save.importance))
 }
+
+
+
+
+
+
+
