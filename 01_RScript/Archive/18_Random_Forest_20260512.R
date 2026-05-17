@@ -113,23 +113,29 @@ ggsave(
 
 # FIRST Out of Sample Predictions: 2001-2015
 Y <- fred[date < "2016-01-01"]
+Y[inf == min(inf), date] # "2008-11-01"
 Y <- Y[, date := NULL]
 Y <- as.matrix(Y)
 dim(Y)
+
+# Dummy for 
+dum=rep(0,nrow(Y))
+dum[which.min(Y[,1])]=1
+Y=cbind(Y,dum=dum)
 
 # Out of Sample Length = 180 (between years 2001-2015)
 nprev <- 180
 
 set.seed(123)
 rf1_1 <- rf.rolling.window(Y,nprev,1,1)
-saveRDS(rf1_1, file= "03_Output/rf1_1.rds")
+#saveRDS(rf1_1, file= "03_Output/rf1_1.rds")
 #saveRDS(rf1_1, file= "03_Output/rf1_1_labor.rds")
 
 rf1_1$errors
 #rf1_1$pred
 
 rf1_3 <- rf.rolling.window(Y,nprev,1,3)
-saveRDS(rf1_3, file= "03_Output/rf1_3.rds")
+#saveRDS(rf1_3, file= "03_Output/rf1_3.rds")
 #saveRDS(rf1_3, file= "03_Output/rf1_3_labor.rds")
 
 rf1_3$errors
@@ -148,19 +154,19 @@ Y <- Y[, date := NULL]
 Y <- as.matrix(Y)
 dim(Y)
 
-# Out of Sample Length = 108 (between years 2016-2024)
+# Out of Sample Length = 108 (between years 2001-2015)
 nprev <- 108
 
 set.seed(123)
-rf2_1 <- rf.rolling.window_second(Y,nprev,1,1)
-saveRDS(rf2_1, file= "03_Output/rf2_1.rds")
+rf2_1 <- rf.rolling.window(Y,nprev,1,1)
+#saveRDS(rf2_1, file= "03_Output/rf2_1.rds")
 #saveRDS(rf2_1, file= "03_Output/rf2_1_labor.rds")
 
 rf2_1$errors
 #rf2_1$pred
 
-rf2_3 <- rf.rolling.window_second(Y,nprev,1,3)
-saveRDS(rf2_3, file= "03_Output/rf2_3.rds")
+rf2_3 <- rf.rolling.window(Y,nprev,1,3)
+#saveRDS(rf2_3, file= "03_Output/rf2_3.rds")
 #saveRDS(rf2_3, file= "03_Output/rf2_3_labor.rds")
 
 rf2_3$errors
