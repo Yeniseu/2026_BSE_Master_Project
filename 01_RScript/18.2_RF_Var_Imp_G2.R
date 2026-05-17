@@ -40,8 +40,8 @@ setDT(fred)
 setnames(fred, "CPIAUCSL", "inf")
 setcolorder(fred, c("date", "inf"))
 
-rf1_3 <- readRDS("03_Output/rf1_3.rds")   # OOS 2001-01 to 2015-12
-rf2_3 <- readRDS("03_Output/rf2_3.rds")   # OOS 2016-01 to 2024-12
+first <- readRDS("03_Output/rf1_3.rds")   # OOS 2001-01 to 2015-12
+socend <- readRDS("03_Output/rf2_3.rds")   # OOS 2016-01 to 2024-12
 
 
 # ============================================================
@@ -151,13 +151,13 @@ oos_dates_1 <- tail(fred$date[fred$date < as.Date("2016-01-01")], 180)
 oos_dates_2 <- tail(fred$date, 108)
 
 shares_1 <- vapply(
-  rf1_3$save.importance,
+  first$save.importance,
   function(m) extract_share(m, target_vars, feat_names, y2_names, n_y2, n_lag_blocks),
   numeric(1)
 )
 
 shares_2 <- vapply(
-  rf2_3$save.importance,
+  second$save.importance,
   function(m) extract_share(m, target_vars, feat_names, y2_names, n_y2, n_lag_blocks),
   numeric(1)
 )
