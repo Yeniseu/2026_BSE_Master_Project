@@ -24,7 +24,8 @@ runlasso <- function(Y, indice, lag, alpha=1, type="lasso", lambda, learn_lambda
   if(lag==1){
     X.out <- tail(aux,1)[1:ncol(X)]  
   } else {
-    X.out <- aux[,-c(1:(ncol(Y2)*(lag-1)))]
+    #X.out <- aux[,-c(1:(ncol(Y2)*(lag-1)))]  # Possibly wrong
+    X.out <- aux[,-c(1:(ncol(Y2)*lag))]
     X.out <- tail(X.out,1)[1:ncol(X)]
   }
   dum=tail(dum,length(y))

@@ -23,21 +23,30 @@ labor_indicators <- c(
   "CES2000000008","CES3000000008"
 )
 labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
+fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)] 
 
 fred <- fred[!is.na(inf),]  ## Remove rows if inflation is NA
 data <- fred[, -c("date")]  
 data <- data[, sapply(data, function(x) sum(is.na(x))==0), with = F]  # Drop cols with NA
-data <- data[, c("inf", labor_indicators), with=F]
 data <- as.matrix(data)
 
-fred[, which(date=="2000-12-01")]
-fred[, which(date=="2015-12-01")]
-dt_s1 <- data[1:fred[, which(date=="2015-12-01")], ]
+
+s1_ends <- fred[, which(date=="2015-12-01")]
+s2_ends <- nrow(fred)
+### Option 1
+dt_s1 <- data[1:s1_ends, ]
 dt_s2 <- copy(data)
+### Option 2
+dt_s1 <- data[(s1_ends-240-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-240-180):s2_ends, ]
+### Option 3
+dt_s1 <- data[(s1_ends-360-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-360-180):s2_ends, ]
 
 #### Run for different lags and samples
 ### Parameter Selection Using Sample 1
-npred1 <- nrow(dt_s1) - fred[, which(date=="2000-12-01")]  # 180
+#npred1 <- nrow(dt_s1) - fred[, which(date=="2000-12-01")]  # 180
+npred1 <- 180
 Y_train_val1 <- dt_s1[1:(nrow(dt_s1)-npred1),]
 
 #
@@ -49,11 +58,11 @@ Y_train_val1 <- dt_s1[1:(nrow(dt_s1)-npred1),]
 #
 ### Parameter Selection Using Sample 1 Lag 1
 ## Select Lambda for Lasso Lag1
-best_lam_lasso_all_1 <- get_best_lambda(Y_train_val1, npred1, 1, lag=1, alpha=1, nlambda=25)  
-# Select Lambda for Ridge Lag1
-best_lam_ridge_all_1 <- get_best_lambda(Y_train_val1, npred1, 1, lag=1, alpha=0, nlambda=25)  
-# Select Alpha and Lambda for ElNet Lag1
-best_alp_all_1 <- get_best_alpha(Y_train_val1, npred1, 1, lag=1, alpha_grid="el", lambda="auto", nlambda=5)
+#best_lam_lasso_all_1 <- get_best_lambda(Y_train_val1, npred1, 1, lag=1, alpha=1, nlambda=25)  
+## Select Lambda for Ridge Lag1
+#best_lam_ridge_all_1 <- get_best_lambda(Y_train_val1, npred1, 1, lag=1, alpha=0, nlambda=25)  
+## Select Alpha and Lambda for ElNet Lag1
+#best_alp_all_1 <- get_best_alpha(Y_train_val1, npred1, 1, lag=1, alpha_grid="el", lambda="auto", nlambda=25)
 ## Save results
 #saveRDS(best_lam_lasso_all_1, "03_Output/Lasso_Optimization/best_lam_lasso_all_1.rds")
 #saveRDS(best_lam_ridge_all_1, "03_Output/Lasso_Optimization/best_lam_ridge_all_1.rds")
@@ -83,7 +92,7 @@ blam_e1 <- best_alp_all_1$best_lam  # 0.049153
 #balp1_e1_l3 <- best_alp_all_1_l3$best_lam  # 
 
 
-## Sample 1: Train: 1960-01-01:2000-12-01.  Test: 2001-01-01:2015-12-01 
+## Sample 1: Test: 2001-01-01:2015-12-01 
 lasso_s1_l1 <- lasso_roll_win(dt_s1, npred1, 1, lag=1, alpha=1      , lambda=blam_l1)
 lasso_s1_l3 <- lasso_roll_win(dt_s1, npred1, 1, lag=3, alpha=1      , lambda=blam_l1)
 ridge_s1_l1 <- lasso_roll_win(dt_s1, npred1, 1, lag=1, alpha=0      , lambda=blam_r1)
@@ -98,8 +107,10 @@ sm_s1_l3 <- sqrt(mean((tail(dt_s1[, "inf"],npred1)-sapply((1:npred1), function(x
 
 
 
-## Sample 2: Train: 1960-01-01:2015-12-01.  Test: 2016-01-01:2024-12-01
-npred2 <- nrow(fred) - fred[, which(date=="2015-12-01")]  # 108 as of 2024-12-01
+
+## Sample 2:  Test: 2016-01-01:2024-12-01
+#npred2 <- nrow(fred) - fred[, which(date=="2015-12-01")]  # 108 as of 2024-12-01
+npred2 <- 108
 blam_l2 <- blam_l1
 blam_r2 <- blam_r1
 blam_e2 <- blam_e1
@@ -132,6 +143,12 @@ lasso_pred_s2 <- data.table(real=lasso_s2_l1$real,
                             ridge_l1=ridge_s2_l1$pred, ridge_l3=ridge_s2_l3$pred, 
                             elnet_l1=elnet_s2_l1$pred, elnet_l3=elnet_s2_l3$pred,
                             rw_l1   =rw_s2_l1_pred   , rw_l3   =rw_s2_l3_pred)
-saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators.rds")
-saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators.rds")
 
+#saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators.rds")
+#saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators.rds")
+
+#saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators_20.rds")
+#saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators_20.rds")
+
+#saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators_30.rds")
+#saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators_30.rds")

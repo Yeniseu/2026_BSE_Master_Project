@@ -28,6 +28,22 @@ labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
 #fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)]  # Open for only labor indicators
 
 
+
+s1_ends <- fred[, which(date=="2015-12-01")]
+### Option 1
+data <- copy(fred)
+### Option 2
+data <- fred[(s1_ends-240-180):s1_ends, ]
+### Option 3
+data <- fred[(s1_ends-360-180):s1_ends, ]
+
+### Final Data
+Y1 <- copy(data[date < "2016-01-01"])
+Y1_mat <- as.matrix(Y1[, date := NULL])
+Y2 <- copy(data)
+Y2_mat <- as.matrix(Y2[, date := NULL])
+
+
 #### TUNING: validation sample 1991-2000 ####
 Y_val <- copy(fred[date < "2001-01-01"])
 Y_val_mat <- as.matrix(Y_val[, date := NULL])
@@ -64,13 +80,11 @@ mtry_grid <- mtry_grid[mtry_grid <= p_base]
 
 
 #### FIRST OOS PERIOD: 2001-2015 ####
-Y1 <- copy(fred[date < "2016-01-01"])
+
 
 # Reproduce your crisis dummy logic
 dum1 <- rep(0, nrow(Y1))
 dum1[which.min(Y1$inf)] <- 1
-
-Y1_mat <- as.matrix(Y1[, date := NULL])
 
 # 180 OOS observations = 2001-2015
 nprev <- 180
@@ -113,9 +127,6 @@ llf1_3 <- llf_rolling_window(
 llf1_3$errors
 
 #### SECOND OOS PERIOD: 2016-2024 ####
-
-Y2 <- copy(fred)
-Y2_mat <- as.matrix(Y2[, date := NULL])
 
 # 108 OOS observations = 2016-2024
 nprev <- 108
@@ -164,5 +175,13 @@ llf_s2 <- data.table(llf2_1 = llf2_1$pred, llf2_3 = llf2_3$pred)
 #saveRDS(llf_s2, file = "03_Output/llf_s2_labor.rds")
 
 
+#saveRDS(llf_s1, file = "03_Output/llf_s1_20.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_20.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_20.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_20.rds")
 
+#saveRDS(llf_s1, file = "03_Output/llf_s1_30.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_30.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_30.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_30.rds")
 
