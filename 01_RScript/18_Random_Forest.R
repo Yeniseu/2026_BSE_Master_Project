@@ -5,6 +5,9 @@
 library(data.table)
 library(randomForest)
 library(ggplot2)
+library(treeshap)
+
+install.packages("treeshap")
 
 rm(list = ls())
 options(print.max = 300, scipen = 30, digits = 5)
