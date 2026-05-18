@@ -42,6 +42,9 @@ dt_s2 <- data[(s2_ends-240-180):s2_ends, ]
 ### Option 3
 dt_s1 <- data[(s1_ends-360-180):s1_ends, ]
 dt_s2 <- data[(s2_ends-360-180):s2_ends, ]
+### Option 4
+dt_s1 <- data[(s1_ends-480-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-480-180):s2_ends, ]
 
 #### Run for different lags and samples
 ### Parameter Selection Using Sample 1
@@ -152,3 +155,6 @@ lasso_pred_s2 <- data.table(real=lasso_s2_l1$real,
 
 #saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators_30.rds")
 #saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators_30.rds")
+
+#saveRDS(lasso_pred_s1, "03_Output/lasso_pred_s1_labor_indicators_40.rds")
+#saveRDS(lasso_pred_s2, "03_Output/lasso_pred_s2_labor_indicators_40.rds")

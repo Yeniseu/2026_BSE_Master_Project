@@ -36,6 +36,8 @@ data <- copy(fred)
 data <- fred[(s1_ends-240-180):s1_ends, ]
 ### Option 3
 data <- fred[(s1_ends-360-180):s1_ends, ]
+### Option 4
+data <- fred[(s1_ends-480-180):s1_ends, ]
 
 ### Final Data
 Y1 <- copy(data[date < "2016-01-01"])
@@ -184,4 +186,9 @@ llf_s2 <- data.table(llf2_1 = llf2_1$pred, llf2_3 = llf2_3$pred)
 #saveRDS(llf_s2, file = "03_Output/llf_s2_30.rds")
 #saveRDS(llf_s1, file = "03_Output/llf_s1_labor_30.rds")
 #saveRDS(llf_s2, file = "03_Output/llf_s2_labor_30.rds")
+
+#saveRDS(llf_s1, file = "03_Output/llf_s1_40.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_40.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_40.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_40.rds")
 

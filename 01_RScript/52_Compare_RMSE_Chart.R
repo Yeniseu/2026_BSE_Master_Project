@@ -15,6 +15,9 @@ options(datatable.print.nrows      = 15)
 
 
 #### Prepare Data and Functions for Sample 1 -----------------------------------
+cl_fed <- read_xlsx("02_Input/FED_Cleveland_MoM.xlsx", sheet="CL_FED") |> as.data.table()
+cl_fed <- cl_fed[, .(date = as.Date(Date), cl_fed = `CPI Inflation`)]
+setkey(cl_fed, "date")
 
 lasso1 <- readRDS("03_Output/lasso_pred_s1.rds")
 lasso1_1 <- lasso1[, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1")]
@@ -884,3 +887,56 @@ ggsave("03_Output/Paper/RMSE/RMSE_Chart_1_Months_Ensemble.png")
 
 
 
+
+#### Compare with FED   --------------------------------------------------------
+### Cleaveland FED 1-Step Ahead
+# Build the Ensemble Models column from all_1 (same weighted combo used in shock_table_ens_wei)
+all_1_fed <- copy(all_1)
+tmp <- all_1_fed[, names(w2), with = F]
+tmp_wei <- matrix(w2, nrow = nrow(tmp), ncol = length(w2), byrow = T)
+Ensembles_cols <- c("best_5", "const_1", "const_2")
+tmp_ens <- all_1_fed[, ..Ensembles_cols]
+ens_weights <- weights[names(weights) %in% Ensembles_cols]
+tmp_ens_wei <- matrix(ens_weights, nrow = nrow(tmp_ens), ncol = length(ens_weights), byrow = T)
+all_1_fed[, Ensemble_Models := rowSums(tmp_ens * tmp_ens_wei) / sum(ens_weights)]
+
+# Merge with Cleveland FED on date (inner join — only overlapping dates)
+all_1_fed <- merge(all_1_fed[, .(date, real, Ensemble_Models)], cl_fed, by = "date")
+
+# Compute yearly RMSE for Ensemble and CL_FED
+all_1_fed_err <- copy(all_1_fed)
+all_1_fed_err[, Ensemble_err := Ensemble_Models - real]
+all_1_fed_err[, cl_fed_err   := cl_fed - real]
+
+all_fed_rmse_yearly <- all_1_fed_err[, .(
+  `Ensemble Models` = sqrt(mean(Ensemble_err^2)),
+  `Cleveland FED`   = sqrt(mean(cl_fed_err^2))
+), by = .(Year = year(date))]
+
+# Group into 3-year periods (same as rest of script)
+all_fed_rmse_yearly[Year %in% 2002:2004, Year_tmp := "2002-2004"]
+all_fed_rmse_yearly[Year %in% 2005:2007, Year_tmp := "2005-2007"]
+all_fed_rmse_yearly[Year %in% 2008:2010, Year_tmp := "2008-2010"]
+all_fed_rmse_yearly[Year %in% 2011:2013, Year_tmp := "2011-2013"]
+all_fed_rmse_yearly[Year %in% 2014:2016, Year_tmp := "2014-2016"]
+all_fed_rmse_yearly[Year %in% 2017:2019, Year_tmp := "2017-2019"]
+all_fed_rmse_yearly[Year %in% 2020:2022, Year_tmp := "2020-2022"]
+all_fed_rmse_yearly[Year %in% 2023:2025, Year_tmp := "2023-2025"]
+
+all_fed_rmse_yearly[, Year := Year_tmp]
+all_fed_rmse_yearly[, Year_tmp := NULL]
+all_fed_rmse_yearly <- all_fed_rmse_yearly[!is.na(Year), lapply(.SD, mean), by = Year]
+
+# Round
+round_cols <- setdiff(names(all_fed_rmse_yearly), "Year")
+all_fed_rmse_yearly[, (round_cols) := lapply(.SD, function(x) round(x, 3)), .SDcols = round_cols]
+
+# Add summary rows: Av. After 2010 and Average All
+post2010_rows <- all_fed_rmse_yearly[Year %in% c("2011-2013", "2014-2016", "2017-2019", "2020-2022", "2023-2025")]
+av_all        <- data.table(Year = "Average All",    t(round(colMeans(all_fed_rmse_yearly[, -"Year"]), 3)))
+all_fed_rmse_yearly <- rbind(all_fed_rmse_yearly, av_all)
+
+# Render the gt table (same style as shock_table_wei)
+title_shock <- "**Out of Sample RMSE**"
+(shock_table_fed <- gt_table_shocks(all_fed_rmse_yearly, title_shock, "1-Months Ahead — Ensemble vs. Cleveland FED"))
+gtsave(shock_table_fed, filename = "03_Output/Paper/RMSE/CL_FED_Comparison.png")
