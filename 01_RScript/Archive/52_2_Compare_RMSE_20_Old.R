@@ -448,8 +448,6 @@ gtsave(shock_table, filename = "03_Output/RMSE20/ShockTable_Step3.png")
 mean_errs <- colMeans(all_rmse_shock[, -c("Year")])
 weights_first   <- (1/(mean_errs/max(mean_errs)))^4
 weights <- weights_first
-weights[names(weights) == "LLF"] <- 0
-
 shock_table_weighted <- copy(all_rmse_shock)
 
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
@@ -464,7 +462,7 @@ nonlin <- c("RF_L", "LLF_L")
 shock_table_weighted[, NonLin := weighted.mean(.SD, weights[names(weights) %in% nonlin]),
                      .SDcols = nonlin, by=seq(nrow(shock_table_weighted))]
 
-VarSel_NonLins <- c("RF", "LLF")
+VarSel_NonLins <- c("RF")
 shock_table_weighted[, VarSel_NonLin := weighted.mean(.SD, weights[names(weights) %in% VarSel_NonLins]),
                      .SDcols = VarSel_NonLins, by=seq(nrow(shock_table_weighted))]
 shock_table_weighted <- shock_table_weighted[, .(Year, Phil_Lasso, VarSel, NonLin, VarSel_NonLin)]
@@ -557,8 +555,7 @@ latex_table <- kbl(tab,format = "latex",booktabs = TRUE,digits = 2,align = c("l"
       "Non-Linear Var.Sel." = 2
     ), bold = TRUE) %>%
   kable_styling(latex_options = c("hold_position", "scale_down"), position = "center", font_size = 8)
-frcst_comb
-writeLines(latex_table, "03_Output/RMSE20/variable_groupings.tex")
+writeLines(latex_table, "03_Output/Paper/RMSE20/variable_groupings.tex")
 
 ### Add these into the forecast table
 all_3[, best_5 := rowMeans(.SD), .SDcols = best_5]
@@ -606,18 +603,18 @@ title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
 all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
-setcolorder(all_rmse_ensemble, c("Year","RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
-                                 "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF", "best_5", "const_1", "const_2"))
+setcolorder(all_rmse_ensemble, c("Year", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
+                                "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF"))
 all_rmse_ensemble[, Year := gsub("-20", "-", Year)]
 round_cols <- setdiff(names(all_rmse_ensemble), "Year")
 all_rmse_ensemble[, (round_cols) := lapply(.SD, function(x) round(x,2)), .SDcols = round_cols]
 #(shock_table_ensemble <- gt_table_shocks(all_rmse_ensemble[!is.na(Year)], title_shock, "3-Step Ahead"))
 (shock_table_ensemble <- all_rmse_ensemble[!is.na(Year)] |>  gt() |>
     tab_header(title = md(title_shock), subtitle = "3-Step Ahead") |>
-    tab_spanner(label = "Linear Phillips Curve",columns = c(LASSO_L, Ridge_L, ElNet_L)) |>
+    tab_spanner(label = "Linear Phillips Curve",columns = c(LASSO, Ridge, ElNet)) |>
     tab_spanner(label = "Benchmark Classic Models",columns = c(RW, RSM, AR)) |>
     tab_spanner(label = "Non-Linear Var.Sel.", columns = c(RF, LLF)) |>
-    tab_spanner(label = "Linear with Variable Selection", columns = c(LASSO, Ridge, ElNet)) |>
+    tab_spanner(label = "Linear with Variable Selection", columns = c(LASSO_L, Ridge_L, ElNet_L)) |>
     tab_spanner(label = "Non-Linear Phil. Curve", columns = c(RF_L, LLF_L)) |>
     tab_spanner(label = "Ensemble/Combined Models", columns = c(best_5, const_1, const_2) ) |>
     cols_align(align = "center") |>
@@ -630,7 +627,6 @@ all_rmse_ensemble[, (round_cols) := lapply(.SD, function(x) round(x,2)), .SDcols
 gtsave(shock_table_ensemble, filename = "03_Output/RMSE20/ShockTable_Step3_Ensemble.html")
 gtsave(shock_table_ensemble, filename = "03_Output/Paper/RMSE20/ShockTable_Step3_Ensemble.html")
 shock_table_ensemble |> as_latex() |> cat()
-writeLines(shock_table_ensemble |> as_latex(), "03_Output/RMSE20/ShockTable_Step3_Ensemble.tex")
 
 
 ### Weighted Model Results
@@ -728,34 +724,6 @@ w2 <- fit_qp$solution
 names(w2) <- colnames(X)
 round(w2,2)
 
-## Descriptive Table
-best_5
-round(w1,2)
-round(w2,2)
-best_5_rbind <- round(w1,2)
-best_5_rbind[names(best_5_rbind) %in% best_5] <- 1
-best_5_rbind[!names(best_5_rbind) %in% best_5] <- 0
-frcst_comb <- rbind(best_5_rbind, round(w1,2), round(w2,2)) |> as.data.table()
-frcst_comb <- cbind(data.table(method=c("Best 5", "Constrained OLS", "Constrained Ridge")), frcst_comb)
-setcolorder(frcst_comb, c("method", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
-                          "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF"))
-frcst_comb
-tab <- copy(frcst_comb)
-latex_table <- kbl(tab,format = "latex",booktabs = TRUE,digits = 2,align = c("l", rep("c", ncol(tab) - 1)),
-                   caption = "Forecast Combination Weights",label = "tab:forecast_combination_weights",
-                   linesep = "", escape = FALSE) %>%
-  add_header_above(
-    c(" " = 1,
-      "Benchmark Classic Models" = 3,
-      "Linear Phillips Curve" = 3,
-      "Linear with Variable Selection" = 3,
-      "Non-Linear Phil. Curve" = 2,
-      "Non-Linear Var.Sel." = 2
-    ), bold = TRUE) %>%
-  kable_styling(latex_options = c("hold_position", "scale_down"), position = "center", font_size = 8)
-frcst_comb
-writeLines(latex_table, "03_Output/RMSE20/variable_groupings.tex")
-
 ### Add these into the forecast table
 all_1[, best_5 := rowMeans(.SD), .SDcols = best_5]
 #all_1[, const_1 :=  weighted.mean(as.matrix((.SD[1,]))[1,], w1), .SDcols = names(w1), by=seq(.N)]
@@ -802,18 +770,18 @@ title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
 all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
-setcolorder(all_rmse_ensemble, c("Year","RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
-                                 "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF", "best_5", "const_1", "const_2"))
+setcolorder(all_rmse_ensemble, c("Year", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
+                                 "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF"))
 all_rmse_ensemble[, Year := gsub("-20", "-", Year)]
 round_cols <- setdiff(names(all_rmse_ensemble), "Year")
 all_rmse_ensemble[, (round_cols) := lapply(.SD, function(x) round(x,2)), .SDcols = round_cols]
-#(shock_table_ensemble <- gt_table_shocks(all_rmse_ensemble[!is.na(Year)], title_shock, "1-Months Ahead"))
+#(shock_table_ensemble <- gt_table_shocks(all_rmse_ensemble[!is.na(Year)], title_shock, "1-Step Ahead"))
 (shock_table_ensemble <- all_rmse_ensemble[!is.na(Year)] |>  gt() |>
-    tab_header(title = md(title_shock), subtitle = "1-Months Ahead") |>
-    tab_spanner(label = "Linear Phillips Curve",columns = c(LASSO_L, Ridge_L, ElNet_L)) |>
+    tab_header(title = md(title_shock), subtitle = "1-Step Ahead") |>
+    tab_spanner(label = "Linear Phillips Curve",columns = c(LASSO, Ridge, ElNet)) |>
     tab_spanner(label = "Benchmark Classic Models",columns = c(RW, RSM, AR)) |>
     tab_spanner(label = "Non-Linear Var.Sel.", columns = c(RF, LLF)) |>
-    tab_spanner(label = "Linear with Variable Selection", columns = c(LASSO, Ridge, ElNet)) |>
+    tab_spanner(label = "Linear with Variable Selection", columns = c(LASSO_L, Ridge_L, ElNet_L)) |>
     tab_spanner(label = "Non-Linear Phil. Curve", columns = c(RF_L, LLF_L)) |>
     tab_spanner(label = "Ensemble/Combined Models", columns = c(best_5, const_1, const_2) ) |>
     cols_align(align = "center") |>
@@ -826,7 +794,6 @@ all_rmse_ensemble[, (round_cols) := lapply(.SD, function(x) round(x,2)), .SDcols
 gtsave(shock_table_ensemble, filename = "03_Output/RMSE20/ShockTable_Step1_Ensemble.html")
 gtsave(shock_table_ensemble, filename = "03_Output/Paper/RMSE20/ShockTable_Step1_Ensemble.html")
 shock_table_ensemble |> as_latex() |> cat()
-writeLines(shock_table_ensemble |> as_latex(), "03_Output/RMSE20/ShockTable_Step1_Ensemble.tex")
 
 
 ### Weighted Model Results
@@ -836,7 +803,6 @@ weights_new   <- (1/(mean_errs/max(mean_errs)))^4
 weights_second <- c(weights_first, weights_new[(length(weights_new)-2):length(weights_new)])
 weights <- weights_second
 weights[names(weights)=="LLF"] <- 0
-weights[names(weights)=="LLF_L"] <- 0
 shock_table_ens_wei <- copy(all_rmse_ensemble)
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
 shock_table_ens_wei[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
@@ -862,7 +828,7 @@ shock_table_ens_wei <- rbind(shock_table_ens_wei, data.table(t(c(NA, colMeans(sh
 shock_table_ens_wei[9, 1] <- "Av. After 2010"
 shock_table_ens_wei <- rbind(shock_table_ens_wei, data.table(t(c(NA, colMeans(shock_table_ens_wei[,-1])))), use.names=F)
 shock_table_ens_wei[10, 1] <- "Average All"
-(shock_table_wei <- gt_table_shocks(shock_table_ens_wei[!is.na(Year)], title_shock, "1-Months Ahead"))
+(shock_table_wei <- gt_table_shocks(shock_table_ens_wei[!is.na(Year)], title_shock, "1-Step Ahead"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE20/ShockTable_Step1_Grouped_Ensemble.png")
 gtsave(shock_table_wei, filename = "03_Output/Paper/RMSE20/ShockTable_Step1_Grouped_Ensemble.png")
 
@@ -876,7 +842,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
-  labs(title = "Out of Sample RMSE", subtitle = "1-Months Ahead", x = "", y = "RMSE") +
+  labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1),
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -886,6 +852,10 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   )
 ggsave("03_Output/RMSE20/RMSE_Chart_1_Months_Ensemble.png")
 ggsave("03_Output/Paper/RMSE20/RMSE_Chart_1_Months_Ensemble.png")
+
+
+
+
 
 
 

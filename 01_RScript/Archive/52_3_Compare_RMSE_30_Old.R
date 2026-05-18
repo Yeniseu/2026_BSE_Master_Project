@@ -448,6 +448,8 @@ gtsave(shock_table, filename = "03_Output/RMSE30/ShockTable_Step3.png")
 mean_errs <- colMeans(all_rmse_shock[, -c("Year")])
 weights_first   <- (1/(mean_errs/max(mean_errs)))^4
 weights <- weights_first
+weights[names(weights) == "LLF"] <- 0
+weights[names(weights) == "LLF_L"] <- 0
 shock_table_weighted <- copy(all_rmse_shock)
 
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
@@ -603,7 +605,7 @@ title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
 all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
-setcolorder(all_rmse_ensemble, c("method", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
+setcolorder(all_rmse_ensemble, c("Year", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
                           "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF"))
 all_rmse_ensemble[, Year := gsub("-20", "-", Year)]
 round_cols <- setdiff(names(all_rmse_ensemble), "Year")
@@ -635,6 +637,8 @@ weights_first
 weights_new   <- (1/(mean_errs/max(mean_errs)))^4
 weights_second <- c(weights_first, weights_new[(length(weights_new)-2):length(weights_new)])
 weights <- weights_second
+weights[names(weights)=="LLF"] <- 0
+weights[names(weights)=="LLF_L"] <- 0
 shock_table_ens_wei <- copy(all_rmse_ensemble)
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
 shock_table_ens_wei[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
@@ -769,7 +773,7 @@ title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
 all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
-setcolorder(all_rmse_ensemble, c("method", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
+setcolorder(all_rmse_ensemble, c("Year", "RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
                                 "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF"))
 all_rmse_ensemble[, Year := gsub("-20", "-", Year)]
 round_cols <- setdiff(names(all_rmse_ensemble), "Year")
@@ -801,6 +805,8 @@ weights_first
 weights_new   <- (1/(mean_errs/max(mean_errs)))^4
 weights_second <- c(weights_first, weights_new[(length(weights_new)-2):length(weights_new)])
 weights <- weights_second
+weights[names(weights)=="LLF"] <- 0
+weights[names(weights)=="LLF_L"] <- 0
 shock_table_ens_wei <- copy(all_rmse_ensemble)
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
 shock_table_ens_wei[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
