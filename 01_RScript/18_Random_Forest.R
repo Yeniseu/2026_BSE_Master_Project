@@ -7,7 +7,6 @@ library(randomForest)
 library(ggplot2)
 library(treeshap)
 
-install.packages("treeshap")
 
 rm(list = ls())
 options(print.max = 300, scipen = 30, digits = 5)
@@ -153,7 +152,6 @@ rf1_3_20$errors
 best_mtry <- 52
 # FIRST OOS PERIOD (2001-2015)
 # 30-year training window = 360 months
-# First prediction trains on 1981-01 to 2000-12
 Y <- tail(fred[date < "2016-01-01"], 360 + 180)
 Y <- Y[, date := NULL]
 Y <- as.matrix(Y)
@@ -167,6 +165,26 @@ rf1_1_30$errors
 rf1_3_30 <- rf.rolling.window(Y,nprev,1,3)
 saveRDS(rf1_3_30, file= "03_Output/rf1_3_30.rds")
 rf1_3_30$errors
+
+
+###########  40 years Training Window  ########
+
+best_mtry <- 52
+# FIRST OOS PERIOD (2001-2015)
+# 40-year training window = 480 months
+Y <- tail(fred[date < "2016-01-01"], 480 + 180)
+Y <- Y[, date := NULL]
+Y <- as.matrix(Y)
+nprev <- 180
+
+set.seed(123)
+rf1_1_40 <- rf.rolling.window(Y,nprev,1,1)
+saveRDS(rf1_1_40, file= "03_Output/rf1_1_40.rds")
+rf1_1_40$errors
+
+rf1_3_40 <- rf.rolling.window(Y,nprev,1,3)
+saveRDS(rf1_3_40, file= "03_Output/rf1_3_40.rds")
+rf1_3_40$errors
 
 
 ##################### SECOND SAMPLE (2016-2024) ###################
@@ -220,7 +238,6 @@ rf2_3_20$errors
 best_mtry <- 52
 # SECOND OOS PERIOD (2016-2024)
 # 30-year training window = 360 months
-# First prediction trains on 1986-01 to 2015-12
 Y <- tail(fred, 360 + 108)
 Y <- Y[, date := NULL]
 Y <- as.matrix(Y)
@@ -234,6 +251,26 @@ rf2_1_30$errors
 rf2_3_30 <- rf.rolling.window_second(Y,nprev,1,3)
 saveRDS(rf2_3_30, file= "03_Output/rf2_3_30.rds")
 rf2_3_30$errors
+
+
+###########  40 years Training Window  ########
+
+best_mtry <- 52
+# SECOND OOS PERIOD (2016-2024)
+# 40-year training window = 480 months
+Y <- tail(fred, 480 + 108)
+Y <- Y[, date := NULL]
+Y <- as.matrix(Y)
+nprev <- 108
+
+set.seed(123)
+rf2_1_40 <- rf.rolling.window_second(Y,nprev,1,1)
+saveRDS(rf2_1_40, file= "03_Output/rf2_1_40.rds")
+rf2_1_40$errors
+
+rf2_3_40 <- rf.rolling.window_second(Y,nprev,1,3)
+saveRDS(rf2_3_40, file= "03_Output/rf2_3_40.rds")
+rf2_3_40$errors
 
 
 
