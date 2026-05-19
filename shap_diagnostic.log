@@ -1,0 +1,129 @@
+
+=== Session info ===
+R version:            R version 4.5.1 (2025-06-13 ucrt) 
+randomForest version: 4.7.1.2 
+treeshap version:     0.4.0 
+Working directory:    C:/Users/eceta/OneDrive/Desktop/BSE/03_TERM_3/Master Project/BSE_Master_Project 
+
+dim(fred): 780 127 
+
+Non-syntactic names BEFORE rename (3):
+[1] "S&P 500"       "S&P div yield" "S&P PE ratio" 
+
+Non-syntactic names AFTER rename (0):
+(none — good)
+
+dim(Y): 420 126 
+Any NA in Y? FALSE 
+
+colnames(Y.window) all syntactic? TRUE 
+
+ncol(X): 520 
+Any duplicate feature names? FALSE 
+All feat_names syntactic? TRUE 
+class(X_df): data.frame   ncol: 520 
+ncol(X_out_df): 520 
+colnames(X_df) == colnames(X_out_df)? TRUE 
+
+length(rownames(model$importance)): 520 
+colnames(X_df) == rownames(model$importance)? TRUE 
+In X_df but not in importance: 0 
+In importance but not in X_df: 0 
+
+--- Calling randomForest.unify ---
+>>> randomForest.unify OK <<<
+
+--- Calling treeshap ---
+>>> treeshap OK. SHAP vec length: 520 <<<
+
+Top 10 features by |SHAP|:
+       ISRATIOx_lag4     CUSR0000SAS_lag3         T10YFFM_lag3 
+           0.0080146            0.0054610            0.0051282 
+       CPIMEDSL_lag3        UEMP27OV_lag6          AWHMAN_lag6 
+           0.0043723            0.0038148            0.0034778 
+           GS10_lag5        CPIULFSL_lag6 DSERRG3M086SBEA_lag6 
+           0.0031299            0.0028280            0.0028126 
+          SP500_lag4 
+           0.0026227 
+
+>>> EVERYTHING WORKS — you can now run the full rolling window. <<<
+
+--- Diagnostic finished. Log saved to shap_diagnostic.log ---
+Renamed:
+           from           to
+1       S&P 500        SP500
+2 S&P div yield SP_div_yield
+3  S&P PE ratio  SP_PE_ratio
+All column names are R-syntactic. Proceeding.
+
+SHAP iteration 1 
+
+--- Smoke test results ---
+Prediction: 0.063502 
+RMSE / MAE: 0.17112 0.17112 
+Length of SHAP vector: 520 
+
+Top 10 features by |SHAP|:
+      UEMPLT5_lag3        Comp.1_lag4        Comp.1_lag5 
+         0.0375512          0.0154659          0.0146443 
+          HWI_lag5       UEMPLT5_lag4      CPIMEDSL_lag3 
+         0.0128077          0.0123473          0.0107357 
+CES0600000007_lag6 CES0600000007_lag5         PCEPI_lag6 
+         0.0050494          0.0039722          0.0037542 
+       AWHMAN_lag6 
+         0.0037216 
+
+>>> If you see this line, treeshap works end-to-end. <<<
+Renamed:
+           from           to
+1       S&P 500        SP500
+2 S&P div yield SP_div_yield
+3  S&P PE ratio  SP_PE_ratio
+All column names are R-syntactic. Proceeding.
+
+SHAP iteration 1 
+
+--- Smoke test results ---
+Prediction: 0.063502 
+RMSE / MAE: 0.17112 0.17112 
+Length of SHAP vector: 520 
+
+Top 10 features by |SHAP|:
+      UEMPLT5_lag3        Comp.1_lag4        Comp.1_lag5 
+         0.0375512          0.0154659          0.0146443 
+          HWI_lag5       UEMPLT5_lag4      CPIMEDSL_lag3 
+         0.0128077          0.0123473          0.0107357 
+CES0600000007_lag6 CES0600000007_lag5         PCEPI_lag6 
+         0.0050494          0.0039722          0.0037542 
+       AWHMAN_lag6 
+         0.0037216 
+
+>>> If you see this line, treeshap works end-to-end. <<<
+[1] 780 127
+[1] 672 126
+
+===== shap1_3_41 (41-yr window, lag=3, nprev=180) =====
+SHAP iteration 1 
+SHAP iteration 2 
+SHAP iteration 3 
+SHAP iteration 4 
+SHAP iteration 5 
+SHAP iteration 6 
+SHAP iteration 7 
+SHAP iteration 8 
+SHAP iteration 9 
+SHAP iteration 10 
+SHAP iteration 11 
+SHAP iteration 12 
+SHAP iteration 13 
+SHAP iteration 14 
+SHAP iteration 15 
+SHAP iteration 16 
+SHAP iteration 17 
+SHAP iteration 18 
+SHAP iteration 19 
+SHAP iteration 20 
+SHAP iteration 21 
+SHAP iteration 22 
+SHAP iteration 23 
+SHAP iteration 24 
