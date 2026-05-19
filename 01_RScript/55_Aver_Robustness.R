@@ -1,6 +1,6 @@
 # Author: Ece Tasan, Orhun Ozel
 # Date: 5/12/2025
-# Scope: Get Average robustness  
+# Scope: Get Average Robustness Table and Figure
 library(ggplot2)
 library(data.table)
 library(gt)
@@ -63,7 +63,8 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
-  labs(title = "Out of Sample RMSE", subtitle = "1-Months Ahead", x = "", y = "RMSE") +
+  labs(title = "Out of Sample RMSE", subtitle = "Average of 6 Different Specifications", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1),
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -71,7 +72,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     legend.position = "top", 
     legend.title = element_blank()
   )
-ggsave("03_Output/Paper/RMSE_Average/RMSE_Average_Chart.png", width = 10, height = 6)
+ggsave("03_Output/Paper/RMSE_Average/RMSE_Average_Chart.png", width = 7, height = 5)
 
 
 (shock_table_wei <- gt_table_shocks(base_3[!is.na(Year)], title_shock, "1-Months Ahead"))

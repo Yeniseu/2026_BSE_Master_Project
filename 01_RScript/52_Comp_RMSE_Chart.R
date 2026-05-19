@@ -14,6 +14,13 @@ options(datatable.print.trunc.cols = T)
 options(datatable.print.nrows      = 15)
 
 
+option <- 1
+if (option==1) {path = ""}
+if (option==2) {path = "_20"}
+if (option==3) {path = "_30"}
+if (option==4) {path = "_40"}
+
+
 #### Prepare Data and Functions for Sample 1 -----------------------------------
 cl_fed <- read_xlsx("02_Input/FED_Cleveland_MoM.xlsx", sheet="CL_FED") |> as.data.table()
 cl_fed <- cl_fed[, .(date = as.Date(Date), cl_fed = `CPI Inflation`)]
@@ -123,7 +130,7 @@ ggplot(all1_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
+#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width = 7, height = 5)
 
 gt_table <- function(data, title, subtitle) {
   res <- data |>
@@ -194,7 +201,7 @@ ggplot(all1_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
+#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=5)
 
 
 
@@ -318,7 +325,7 @@ ggplot(all2_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
+#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=5)
 
 (Sample2_Step1 <- gt_table(all2_1_rmse_yearly, title, "1-Step Ahead"))
 #gtsave(Sample2_Step1, filename = "03_Output/RMSE/Sample2_Step1.png")
@@ -357,7 +364,7 @@ ggplot(all2_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=4)
+#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=5)
 
 
 (Sample2_Step3 <- gt_table(all2_3_rmse_yearly, title, "3-Step Ahead"))
@@ -490,8 +497,8 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     plot.subtitle = element_text(hjust = 0.5),
     legend.position = "top",  legend.title = element_blank()
   )
-ggsave("03_Output/RMSE/RMSE_Chart_3_Months.png")
-ggsave("03_Output/Paper/RMSE/RMSE_Chart_3_Months.png")
+ggsave("03_Output/RMSE/RMSE_Chart_3_Months.png", width = 7, height = 5)
+ggsave("03_Output/Paper/RMSE/RMSE_Chart_3_Months.png", width = 7, height = 5)
 # Phillips Curve
 # Adaptive Variable Selection (VarSel)
 # Non-Linearities (Non-Lin)
@@ -703,6 +710,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1),
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -710,8 +718,8 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     legend.position = "top", 
     legend.title = element_blank()
   )
-ggsave("03_Output/RMSE/RMSE_Chart_3_Months_Ensemble.png")
-ggsave("03_Output/Paper/RMSE/RMSE_Chart_3_Months_Ensemble.png")
+ggsave("03_Output/RMSE/RMSE_Chart_3_Months_Ensemble.png", width = 7, height = 5)
+ggsave("03_Output/Paper/RMSE/RMSE_Chart_3_Months_Ensemble.png", width = 7, height = 5)
 
 
 
@@ -898,6 +906,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
   labs(title = "Out of Sample RMSE", subtitle = "1-Months Ahead", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1),
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -905,8 +914,8 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     legend.position = "top", 
     legend.title = element_blank()
   )
-ggsave("03_Output/RMSE/RMSE_Chart_1_Months_Ensemble.png")
-ggsave("03_Output/Paper/RMSE/RMSE_Chart_1_Months_Ensemble.png")
+ggsave("03_Output/RMSE/RMSE_Chart_1_Months_Ensemble.png", width = 10, height = 6)
+ggsave("03_Output/Paper/RMSE/RMSE_Chart_1_Months_Ensemble.png", width = 10, height = 6)
 
 
 
