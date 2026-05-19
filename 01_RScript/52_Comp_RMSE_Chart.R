@@ -71,20 +71,20 @@ rf1_3 <- readRDS(paste0("03_Output/rf1_3",path,".rds"))
 rf1_3 <- rf1_3$pred
 rf1_3 <- as.data.table(rf1_3)
 setnames(rf1_3, "V1", "RF")
-rf1_1_labor <- readRDS("03_Output/rf1_1_labor.rds")
+rf1_1_labor <- readRDS(paste0("03_Output/rf1_1", path, "_labor.rds"))
 rf1_1_labor <- rf1_1_labor$pred
 rf1_1_labor <- as.data.table(rf1_1_labor)
 setnames(rf1_1_labor, "V1", "RF_L")
-rf1_3_labor <- readRDS("03_Output/rf1_3_labor.rds")
+rf1_3_labor <- readRDS(paste0("03_Output/rf1_3", path, "_labor.rds"))
 rf1_3_labor <- rf1_3_labor$pred
 rf1_3_labor <- as.data.table(rf1_3_labor)
 setnames(rf1_3_labor, "V1", "RF_L")
 
 
-llf1   <- readRDS("03_Output/llf_s1.rds")
+llf1   <- readRDS(paste0("03_Output/llf_s1", path, ".rds"))
 llf1_1 <- llf1[, .(LLF = llf1_1)]
 llf1_3 <- llf1[, .(LLF = llf1_3)]
-llf1_labor   <- readRDS("03_Output/llf_s1_labor.rds")
+llf1_labor   <- readRDS(paste0("03_Output/llf_s1_labor",path,".rds"))
 llf1_1_labor <- llf1_labor[, .(LLF_L = llf1_1)]
 llf1_3_labor <- llf1_labor[, .(LLF_L = llf1_3)]
 
@@ -131,7 +131,7 @@ ggplot(all1_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width = 7, height = 5)
+#ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path,".png"), width = 7, height = 5)
 
 gt_table <- function(data, title, subtitle) {
   res <- data |>
@@ -168,7 +168,7 @@ gt_table_shocks <- function(data, title, subtitle) {
 ## Comparisons RMSE Year by Year  
 title    <- "**Yearly RMSE by Model**"
 (Sample1_Step1 <- gt_table(all1_1_rmse_yearly, title, "3-Step Ahead"))
-#gtsave(Sample1_Step1, filename = "03_Output/RMSE/Sample1_Step3.png")
+#gtsave(Sample1_Step1, paste0("03_Output/RMSE",path,"/Sample1_Step3",path,".png"))
 
 # Calculate Errors 3 Step
 all1_3_err <- copy(all1_3)
@@ -202,29 +202,26 @@ ggplot(all1_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
   theme_minimal() + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
-#ggsave("03_Output/Exercise c/Growth_Acc_Cumulative_hclc.png", width=7, height=5)
+#ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path,".png"), width=7, height=5)
 
 
 
 (Sample1_Step3 <- gt_table(all1_3_rmse_yearly, title, "3-Step Ahead"))
-#gtsave(Sample1_Step3, filename = "03_Output/RMSE/Sample1_Step3.png")
-
-
-
+#gtsave(Sample1_Step3, paste0("03_Output/RMSE",path,"/Sample1_Step3",path,".png")
 
 
 
 
 
 #### Prepare Data and Functions for Sample 2 -----------------------------------
-lasso2 <- readRDS("03_Output/lasso_pred_s2.rds")
+lasso2 <- readRDS(paste0("03_Output/lasso_pred_s2",path,".rds"))
 lasso2_1 <- lasso2[, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1")]
 setnames(lasso2_1, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 lasso2_3 <- lasso2[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso2_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
-lasso2_labor <- readRDS("03_Output/lasso_pred_s2_labor_indicators.rds")
+lasso2_labor <- readRDS(paste0("03_Output/lasso_pred_s2_labor_indicators",path ,".rds"))
 lasso2_1_labor <- lasso2_labor[, c("lasso_l1", "ridge_l1", "elnet_l1")]
 setnames(lasso2_1_labor, c("lasso_l1", "ridge_l1", "elnet_l1"),
          c("LASSO_L", "Ridge_L", "ElNet_L"))
@@ -251,28 +248,29 @@ p2_h3_ar4 <- as.data.table(p2_h3_ar4)
 setnames(p2_h3_ar4, "V1", "AR")
 
 
-rf2_1 <- readRDS("03_Output/rf2_1.rds")
+
+rf2_1 <- readRDS(paste0("03_Output/rf2_1",path,".rds"))
 rf2_1 <- rf2_1$pred
 rf2_1 <- as.data.table(rf2_1)
 setnames(rf2_1, "V1", "RF")
 rf2_3 <- readRDS("03_Output/rf2_3.rds")
+rf2_3 <- readRDS(paste0("03_Output/rf2_3",path,".rds"))
 rf2_3 <- rf2_3$pred
 rf2_3 <- as.data.table(rf2_3)
 setnames(rf2_3, "V1", "RF")
-rf2_1_labor <- readRDS("03_Output/rf2_1_labor.rds")
+rf2_1_labor <- readRDS(paste0("03_Output/rf2_1", path, "_labor.rds"))
 rf2_1_labor <- rf2_1_labor$pred
 rf2_1_labor <- as.data.table(rf2_1_labor)
 setnames(rf2_1_labor, "V1", "RF_L")
-rf2_3_labor <- readRDS("03_Output/rf2_3_labor.rds")
+rf2_3_labor <- readRDS(paste0("03_Output/rf2_3", path, "_labor.rds"))
 rf2_3_labor <- rf2_3_labor$pred
 rf2_3_labor <- as.data.table(rf2_3_labor)
 setnames(rf2_3_labor, "V1", "RF_L")
 
-
-llf2   <- readRDS("03_Output/llf_s2.rds")
+llf2   <- readRDS(paste0("03_Output/llf_s2", path, ".rds"))
 llf2_1 <- llf2[, .(LLF = llf2_1)]
 llf2_3 <- llf2[, .(LLF = llf2_3)]
-llf2_labor    <- readRDS("03_Output/llf_s2_labor.rds")
+llf2_labor   <- readRDS(paste0("03_Output/llf_s2_labor",path,".rds"))
 llf2_1_labor  <- llf2_labor[, .(LLF_L = llf2_1)]
 llf2_3_labor  <- llf2_labor[, .(LLF_L = llf2_3)]
 
