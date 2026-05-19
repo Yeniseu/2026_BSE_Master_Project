@@ -9,6 +9,7 @@ library(gt)
 library(glmnet)
 library(quadprog)
 library(kableExtra)
+library(readxl)
 options(scipen=30, digits=3)
 options(datatable.print.trunc.cols = T)
 options(datatable.print.nrows      = 15)
@@ -26,14 +27,14 @@ cl_fed <- read_xlsx("02_Input/FED_Cleveland_MoM.xlsx", sheet="CL_FED") |> as.dat
 cl_fed <- cl_fed[, .(date = as.Date(Date), cl_fed = `CPI Inflation`)]
 setkey(cl_fed, "date")
 
-lasso1 <- readRDS("03_Output/lasso_pred_s1.rds")
+lasso1 <- readRDS(paste0("03_Output/lasso_pred_s1", path, ".rds"))
 lasso1_1 <- lasso1[, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1")]
 setnames(lasso1_1, c("real", "lasso_l1", "ridge_l1", "elnet_l1", "rw_l1"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
 lasso1_3 <- lasso1[, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3")]
 setnames(lasso1_3, c("real", "lasso_l3", "ridge_l3", "elnet_l3", "rw_l3"),
          c("real", "LASSO", "Ridge", "ElNet", "RW"))
-lasso1_labor <- readRDS("03_Output/lasso_pred_s1_labor_indicators.rds")
+lasso1_labor <- readRDS(paste0("03_Output/lasso_pred_s1_labor_indicators",path ,".rds"))
 lasso1_1_labor <- lasso1_labor[, c("lasso_l1", "ridge_l1", "elnet_l1")]
 setnames(lasso1_1_labor, c("lasso_l1", "ridge_l1", "elnet_l1"),
          c("LASSO_L", "Ridge_L", "ElNet_L"))
@@ -62,11 +63,11 @@ p1_h3_ar4 <- as.data.table(p1_h3_ar4)
 setnames(p1_h3_ar4, "V1", "AR")
 
 
-rf1_1 <- readRDS("03_Output/rf1_1.rds")
+rf1_1 <- readRDS(paste0("03_Output/rf1_1",path,".rds"))
 rf1_1 <- rf1_1$pred
 rf1_1 <- as.data.table(rf1_1)
 setnames(rf1_1, "V1", "RF")
-rf1_3 <- readRDS("03_Output/rf1_3.rds")
+rf1_3 <- readRDS(paste0("03_Output/rf1_3",path,".rds"))
 rf1_3 <- rf1_3$pred
 rf1_3 <- as.data.table(rf1_3)
 setnames(rf1_3, "V1", "RF")
