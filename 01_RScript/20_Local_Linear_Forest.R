@@ -28,26 +28,34 @@ labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
 #fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)]  # Open for only labor indicators
 
 
-
-s1_ends <- fred[, which(date=="2015-12-01")]
-### Option 1
 data <- copy(fred)
+s1_ends <- data[, which(date=="2015-12-01")]
+s2_ends <- nrow(fred)
+### Option 1
+
+### Option 1
+dt_s1 <- data[1:s1_ends, ]
+dt_s2 <- data[1:s2_ends, ]
 ### Option 2
-data <- fred[(s1_ends-240-180):s1_ends, ]
+dt_s1 <- data[(s1_ends-240-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-240-108):s2_ends, ]
 ### Option 3
-data <- fred[(s1_ends-360-180):s1_ends, ]
+dt_s1 <- data[(s1_ends-360-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-360-108):s2_ends, ]
 ### Option 4
-data <- fred[(s1_ends-480-180):s1_ends, ]
+dt_s1 <- data[(s1_ends-480-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-480-108):s2_ends, ]
+
+
 
 ### Final Data
-Y1 <- copy(data[date < "2016-01-01"])
-Y1_mat <- as.matrix(Y1[, date := NULL])
-Y2 <- copy(data)
-Y2_mat <- as.matrix(Y2[, date := NULL])
-
+Y1 <- copy(dt_s1)
+Y1_mat <- as.matrix(Y1[, -c("date")])
+Y2 <- copy(dt_s2)
+Y2_mat <- as.matrix(Y2[, -c("date")])
 
 #### TUNING: validation sample 1991-2000 ####
-Y_val <- copy(fred[date < "2001-01-01"])
+Y_val <- copy(data[date < "2001-01-01"])
 Y_val_mat <- as.matrix(Y_val[, date := NULL])
 
 # 120 OOS validation observations = 1991-2000

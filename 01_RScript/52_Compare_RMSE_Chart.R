@@ -1,4 +1,4 @@
-# Author: Ece Tasan
+# Author: Ece Tasan, Orhun Ozel
 # Date: 5/12/2025
 # Scope: Rolling RMSE for Model Comparison
 
@@ -475,6 +475,7 @@ shock_table_weighted <- rbind(shock_table_weighted, data.table(t(c(NA, colMeans(
 shock_table_weighted[10, 1] <- "Average All"
 (shock_table_wei <- gt_table_shocks(shock_table_weighted[!is.na(Year)], title_shock, "3-Step Ahead"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped.png")
+gtsave(shock_table_wei, filename = "03_Output/Paper/RMSE/ShockTable_Step3_Grouped.png")
 
 
 # Convert to long format
@@ -490,6 +491,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
     legend.position = "top",  legend.title = element_blank()
   )
 ggsave("03_Output/RMSE/RMSE_Chart_3_Months.png")
+ggsave("03_Output/Paper/RMSE/RMSE_Chart_3_Months.png")
 # Phillips Curve
 # Adaptive Variable Selection (VarSel)
 # Non-Linearities (Non-Lin)
@@ -631,7 +633,26 @@ all_rmse_ensemble[, (round_cols) := lapply(.SD, function(x) round(x,2)), .SDcols
 gtsave(shock_table_ensemble, filename = "03_Output/RMSE/ShockTable_Step3_Ensemble.html")
 gtsave(shock_table_ensemble, filename = "03_Output/Paper/RMSE/ShockTable_Step3_Ensemble.html")
 shock_table_ensemble |> as_latex() |> cat()
-writeLines(shock_table_ensemble |> as_latex(), "03_Output/RMSE/ShockTable_Step3_Ensemble.tex")
+writeLines(as_latex(shock_table_ensemble)[[1]], "03_Output/Paper/RMSE/ShockTable_Step3_Ensemble.tex")
+
+
+(shock_table <- all_rmse_ensemble[!is.na(Year), c("Year", "LASSO_L",	"Ridge_L",	"ElNet_L",	"LASSO",	"Ridge",	"ElNet",	"RF_L",	"LLF_L",	"RF",	"LLF")] |>  gt() |>
+    tab_header(title = md(title_shock), subtitle = "3-Step Ahead") |>
+    tab_spanner(label = "Linear Phillips Curve",columns = c(LASSO_L, Ridge_L, ElNet_L)) |>
+    tab_spanner(label = "Non-Linear Var.Sel.", columns = c(RF, LLF)) |>
+    tab_spanner(label = "Linear with Variable Selection", columns = c(LASSO, Ridge, ElNet)) |>
+    tab_spanner(label = "Non-Linear Phil. Curve", columns = c(RF_L, LLF_L)) |>
+    cols_align(align = "center") |>
+    tab_options(table.font.names = "Consolas") |>
+    tab_style(style = list(
+      cell_borders(sides = c("top", "bottom"), color = "black", weight = px(3)), style = cell_fill(color = "#E8E8E8") ),
+      locations = cells_body(rows = Year %in% c("2008-10", "2020-22", "Average"))) |>
+    tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |>
+    data_color(columns = -Year, direction = "row", palette = c("dodgerblue", "white", "firebrick")))
+#gtsave(shock_table, filename = "03_Output/RMSE/ShockTable_Step3.html")
+gtsave(shock_table, filename = "03_Output/Paper/RMSE/ShockTable_Step3.html")
+shock_table |> as_latex() |> cat()
+writeLines(as_latex(shock_table)[[1]], "03_Output/Paper/RMSE/ShockTable_Step3.tex")
 
 
 ### Weighted Model Results
@@ -640,6 +661,8 @@ weights_first
 weights_new   <- (1/(mean_errs/max(mean_errs)))^4
 weights_second <- c(weights_first, weights_new[(length(weights_new)-2):length(weights_new)])
 weights <- weights_second
+#weights[names(weights)=="RF"] <- 0
+#weights[names(weights)=="RF_L"] <- 0
 shock_table_ens_wei <- copy(all_rmse_ensemble)
 VarSels_labor <- c("LASSO_L", "Ridge_L", "ElNet_L")
 shock_table_ens_wei[, Phil_Lasso := weighted.mean(.SD, weights[names(weights) %in% VarSels_labor]),
@@ -668,7 +691,7 @@ shock_table_ens_wei[10, 1] <- "Average All"
 (shock_table_wei <- gt_table_shocks(shock_table_ens_wei[!is.na(Year)], title_shock, "3-Step Ahead"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step3_Grouped_Ensemble.png")
 gtsave(shock_table_wei, filename = "03_Output/Paper/RMSE/ShockTable_Step3_Grouped_Ensemble.png")
-
+saveRDS(shock_table_ens_wei, "03_Output/Paper/RMSE_Average/Step3_Grouped_Ensemble.rds")
 
 # Plot RMSE Figure with Ensemble
 plot_rmse <- shock_table_ens_wei[!is.na(Year)][!Year %in% c("Average All", "Av. After 2010")]
@@ -863,7 +886,7 @@ shock_table_ens_wei[10, 1] <- "Average All"
 (shock_table_wei <- gt_table_shocks(shock_table_ens_wei[!is.na(Year)], title_shock, "1-Months Ahead"))
 gtsave(shock_table_wei, filename = "03_Output/RMSE/ShockTable_Step1_Grouped_Ensemble.png")
 gtsave(shock_table_wei, filename = "03_Output/Paper/RMSE/ShockTable_Step1_Grouped_Ensemble.png")
-
+saveRDS(shock_table_ens_wei, "03_Output/Paper/RMSE_Average/Step1_Grouped_Ensemble.rds")
 
 # Plot RMSE Figure with Ensemble
 plot_rmse <- shock_table_ens_wei[!is.na(Year)][!Year %in% c("Average All", "Av. After 2010")]
@@ -940,3 +963,6 @@ all_fed_rmse_yearly <- rbind(all_fed_rmse_yearly, av_all)
 title_shock <- "**Out of Sample RMSE**"
 (shock_table_fed <- gt_table_shocks(all_fed_rmse_yearly, title_shock, "1-Months Ahead — Ensemble vs. Cleveland FED"))
 gtsave(shock_table_fed, filename = "03_Output/Paper/RMSE/CL_FED_Comparison.png")
+
+
+
