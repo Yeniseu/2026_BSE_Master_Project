@@ -13,6 +13,17 @@ options(scipen=30, digits=3)
 options(datatable.print.trunc.cols = T)
 options(datatable.print.nrows      = 15)
 
+# ── Shared colour palette (matches RMSE_Chart_3_Months_Ensemble.png) ──────────
+model_colors <- c(
+  "Linear Phillips Curve"              = "#F8766D",   # salmon / pink-red
+  "Non-Linear Phillips Curve"          = "#00BA38",   # green
+  "Linear with Variable Selection"     = "#B79F00",   # olive / yellow-green
+  "Non-Linear and Var. Selection"      = "#00BFC4",   # cyan / teal  (ensemble charts)
+  "Non-Linear and Variable Selection"  = "#00BFC4",   # cyan / teal  (non-ensemble chart)
+  "Ensemble Models"                    = "#C77CFF"    # orchid / purple
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 #### Average robustness  
 base_3 <- readRDS("03_Output/Paper/RMSE_Average/Step3_Grouped_Ensemble.rds")
 base_1 <- readRDS("03_Output/Paper/RMSE_Average/Step1_Grouped_Ensemble.rds")
@@ -63,6 +74,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "Average of 6 Different Specifications", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +
   theme(
@@ -81,4 +93,6 @@ ggsave("03_Output/Paper/RMSE_Average/RMSE_Average_Chart.png", width = 7, height 
 (shock_table_wei <- gt_table_shocks(rb40_1[!is.na(Year)], title_shock, "1-Months Ahead"))
 (shock_table_wei <- gt_table_shocks(rb30_3[!is.na(Year)], title_shock, "1-Months Ahead"))
 (shock_table_wei <- gt_table_shocks(rb30_1[!is.na(Year)], title_shock, "1-Months Ahead"))
+
+
 

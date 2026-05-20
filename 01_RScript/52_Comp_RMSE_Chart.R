@@ -21,6 +21,17 @@ if (option==2) {path = "_20"}
 if (option==3) {path = "_30"}
 if (option==4) {path = "_40"}
 
+# ── Shared colour palette (matches RMSE_Chart_3_Months_Ensemble.png) ──────────
+model_colors <- c(
+  "Linear Phillips Curve"              = "#F8766D",   # salmon / pink-red
+  "Non-Linear Phillips Curve"          = "#00BA38",   # green
+  "Linear with Variable Selection"     = "#B79F00",   # olive / yellow-green
+  "Non-Linear and Var. Selection"      = "#00BFC4",   # cyan / teal  (ensemble charts)
+  "Non-Linear and Variable Selection"  = "#00BFC4",   # cyan / teal  (non-ensemble chart)
+  "Ensemble Models"                    = "#C77CFF"    # orchid / purple
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 #### Prepare Data and Functions for Sample 1 -----------------------------------
 cl_fed <- read_xlsx("02_Input/FED_Cleveland_MoM.xlsx", sheet="CL_FED") |> as.data.table()
@@ -484,7 +495,13 @@ plot_rmse <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
 plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
 ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
+  annotate("rect", xmin = 2.5, xmax = 3.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
+  annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
+  annotate("text", x = "2008-2010", y = 0.55, label = "GFC", size = 3) +
+  annotate("text", x = "2020-2022", y = 0.55, label = "COVID", size = 3) +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
   theme(
     axis.text.x = element_text(angle = 90, hjust = 1),
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -608,7 +625,7 @@ all_rmse_ensemble[, Year_tmp := NULL]
 all_rmse_ensemble <- all_rmse_ensemble[, lapply(.SD, mean), by=Year]
 title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
-all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
+all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colMeans(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
 setcolorder(all_rmse_ensemble, c("Year","RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
                                  "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF", "best_5", "const_1", "const_2"))
@@ -703,6 +720,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +
   theme(
@@ -825,7 +843,7 @@ all_rmse_ensemble[, Year_tmp := NULL]
 all_rmse_ensemble <- all_rmse_ensemble[, lapply(.SD, mean), by=Year]
 title_shock   <- "**Out of Sample RMSE**"
 all_rmse_ensemble <- all_rmse_ensemble[!is.na(Year)]
-all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colSums(all_rmse_ensemble[, -c("Year")])), fill=T)
+all_rmse_ensemble <- rbind(all_rmse_ensemble, t(colMeans(all_rmse_ensemble[, -c("Year")])), fill=T)
 all_rmse_ensemble[.N, Year := "Average"]
 setcolorder(all_rmse_ensemble, c("Year","RW", "RSM", "AR", "LASSO_L", "Ridge_L", "ElNet_L",
                                  "LASSO", "Ridge", "ElNet", "RF_L", "LLF_L", "RF", "LLF", "best_5", "const_1", "const_2"))
@@ -899,6 +917,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
   geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "1-Months Ahead", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +
   theme(
