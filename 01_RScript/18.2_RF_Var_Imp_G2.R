@@ -19,16 +19,17 @@ options(scipen = 30, digits = 5)
 # --- Option A: Single variable ---
 # Set GROUP_MODE = FALSE and put the variable name below
 GROUP_MODE    <- T
-VARIABLE_NAME <- "PPICMM"    # e.g. "CPITRNSL", "OILPRICEx", "PAYEMS"
+VARIABLE_NAME <- "UMCSENTx"    # e.g. "CPITRNSL", "OILPRICEx", "PAYEMS"
 
  #--- Option B: Custom group ---
- #Set GROUP_MODE = TRUE, list variables, and give the group a name
+# #Set GROUP_MODE = TRUE, list variables, and give the group a name
  GROUP_MODE <- TRUE
  GROUP_NAME <- "Supply-side prices"
- GROUP_VARS <- c("OILPRICEx", "WPSFD49207", "WPSID61", "WPSID62")
+ GROUP_VARS <- c("CES0600000008", "CES2000000008", "CES3000000008")
  #GROUP_VARS <- c("HWIURATIO", "PAYEMS", "CLAIMSx", "UNRATE")
 # --- Rolling window smoothing (months) ---
 SMOOTH_WINDOW <- 12
+
 
 
 # ============================================================
