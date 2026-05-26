@@ -514,6 +514,26 @@ ggsave(paste0("03_Output/Paper/RMSE", path, "/RMSE_Chart_3_Months", path, ".png"
 # Adaptive Variable Selection (VarSel)
 # Non-Linearities (Non-Lin)
 # Non-Lin and VarSel
+plot_rmse_only2 <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
+plot_rmse_only2 <- plot_rmse_only2[, c("Year", "Linear Phillips Curve", "Non-Linear and Variable Selection")]
+plot_rmse_only2 <- melt(plot_rmse_only2, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
+ggplot(plot_rmse_only2, aes(x = Year, y = RMSE, group = Model, color = Model)) +
+  geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
+  annotate("rect", xmin = 2.5, xmax = 3.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
+  annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
+  annotate("text", x = "2008-2010", y = 0.55, label = "GFC", size = 3) +
+  annotate("text", x = "2020-2022", y = 0.55, label = "COVID", size = 3) +
+  labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "top",  legend.title = element_blank()
+  )
+ggsave(paste0("03_Output/Paper/RMSE", path, "/RMSE_Chart_3_Months_Only2", path, ".png"), width = 7, height = 5)
+
 
 
 

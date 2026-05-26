@@ -1,0 +1,16 @@
+I want you to write a master project on forecasting US inflation using machine learning methods to determine whether the Phillips Curve is non-linear especially in the crisis periods and to see whether the non-linear ML models perform better and to disentangle the the benefits coming form the variable selection and non-linearity when going from Phillips Curves to non-linear state dependent Machine learning models.
+
+
+
+You have the latest presentation on the topic in Presentation_4.pdf. You have a much earlier primitive project in Data_Science_Project_Forecasting_Inflation.pdf. . You have a rough outline and an Introduction section in main.tex. Read these carefully. Your main results, data and desriptives parts are in Add_This.tex. You should merge Add_This.tex into  main.tex document, and write the master project in a tex file. The pdf version of the Add_This.tex is the Add_This pdf, this includes the main results you should incorporate into the paper. The data, the methods and the how we implemented the models are in the Rscripts in the 01_RScript folder, read these carefully and use what we did in them in your writing. In your writing, the project should closely adhere to the Econ-MP Guidelines 2526.pdf read it carefully. Document says that paper should be 10-25 pages, make it on the shorter side (less than 20 for. example) if possible. 
+
+
+
+Don't use paragraph titles, make the structure similar to a real academic paper when possible. You can add new citations from credible and high quality sources whenever you can, but absolutely make sure that they are real references, not fake.
+
+
+
+If you have some important questions to ask, you can ask me beforehand.
+
+
+
