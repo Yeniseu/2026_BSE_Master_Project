@@ -26,7 +26,8 @@ VARIABLE_NAME <- "UMCSENTx"    # e.g. "CPITRNSL", "OILPRICEx", "PAYEMS"
  GROUP_MODE <- TRUE
  GROUP_NAME <- "Supply-side prices"
  #GROUP_VARS <- c("CES0600000008", "CES2000000008", "CES3000000008")
- GROUP_VARS <- c("HWIURATIO", "PAYEMS", "CLAIMSx", "UNRATE")
+ GROUP_VARS <- c("CES0600000007","AWOTMAN",
+                 "AWHMAN")
 # --- Rolling window smoothing (months) ---
 SMOOTH_WINDOW <- 12
 
