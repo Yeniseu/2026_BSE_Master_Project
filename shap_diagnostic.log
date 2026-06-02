@@ -1,0 +1,286 @@
+
+=== Session info ===
+R version:            R version 4.5.1 (2025-06-13 ucrt) 
+randomForest version: 4.7.1.2 
+treeshap version:     0.4.0 
+Working directory:    C:/Users/eceta/OneDrive/Desktop/BSE/03_TERM_3/Master Project/BSE_Master_Project 
+
+dim(fred): 780 127 
+
+Non-syntactic names BEFORE rename (3):
+[1] "S&P 500"       "S&P div yield" "S&P PE ratio" 
+
+Non-syntactic names AFTER rename (0):
+(none — good)
+
+dim(Y): 420 126 
+Any NA in Y? FALSE 
+
+colnames(Y.window) all syntactic? TRUE 
+
+ncol(X): 520 
+Any duplicate feature names? FALSE 
+All feat_names syntactic? TRUE 
+class(X_df): data.frame   ncol: 520 
+ncol(X_out_df): 520 
+colnames(X_df) == colnames(X_out_df)? TRUE 
+
+length(rownames(model$importance)): 520 
+colnames(X_df) == rownames(model$importance)? TRUE 
+In X_df but not in importance: 0 
+In importance but not in X_df: 0 
+
+--- Calling randomForest.unify ---
+>>> randomForest.unify OK <<<
+
+--- Calling treeshap ---
+>>> treeshap OK. SHAP vec length: 520 <<<
+
+Top 10 features by |SHAP|:
+       ISRATIOx_lag4     CUSR0000SAS_lag3         T10YFFM_lag3 
+           0.0080146            0.0054610            0.0051282 
+       CPIMEDSL_lag3        UEMP27OV_lag6          AWHMAN_lag6 
+           0.0043723            0.0038148            0.0034778 
+           GS10_lag5        CPIULFSL_lag6 DSERRG3M086SBEA_lag6 
+           0.0031299            0.0028280            0.0028126 
+          SP500_lag4 
+           0.0026227 
+
+>>> EVERYTHING WORKS — you can now run the full rolling window. <<<
+
+--- Diagnostic finished. Log saved to shap_diagnostic.log ---
+Renamed:
+           from           to
+1       S&P 500        SP500
+2 S&P div yield SP_div_yield
+3  S&P PE ratio  SP_PE_ratio
+All column names are R-syntactic. Proceeding.
+
+SHAP iteration 1 
+
+--- Smoke test results ---
+Prediction: 0.063502 
+RMSE / MAE: 0.17112 0.17112 
+Length of SHAP vector: 520 
+
+Top 10 features by |SHAP|:
+      UEMPLT5_lag3        Comp.1_lag4        Comp.1_lag5 
+         0.0375512          0.0154659          0.0146443 
+          HWI_lag5       UEMPLT5_lag4      CPIMEDSL_lag3 
+         0.0128077          0.0123473          0.0107357 
+CES0600000007_lag6 CES0600000007_lag5         PCEPI_lag6 
+         0.0050494          0.0039722          0.0037542 
+       AWHMAN_lag6 
+         0.0037216 
+
+>>> If you see this line, treeshap works end-to-end. <<<
+Renamed:
+           from           to
+1       S&P 500        SP500
+2 S&P div yield SP_div_yield
+3  S&P PE ratio  SP_PE_ratio
+All column names are R-syntactic. Proceeding.
+
+SHAP iteration 1 
+
+--- Smoke test results ---
+Prediction: 0.063502 
+RMSE / MAE: 0.17112 0.17112 
+Length of SHAP vector: 520 
+
+Top 10 features by |SHAP|:
+      UEMPLT5_lag3        Comp.1_lag4        Comp.1_lag5 
+         0.0375512          0.0154659          0.0146443 
+          HWI_lag5       UEMPLT5_lag4      CPIMEDSL_lag3 
+         0.0128077          0.0123473          0.0107357 
+CES0600000007_lag6 CES0600000007_lag5         PCEPI_lag6 
+         0.0050494          0.0039722          0.0037542 
+       AWHMAN_lag6 
+         0.0037216 
+
+>>> If you see this line, treeshap works end-to-end. <<<
+[1] 780 127
+[1] 672 126
+
+===== shap1_3_41 (41-yr window, lag=3, nprev=180) =====
+SHAP iteration 1 
+SHAP iteration 2 
+SHAP iteration 3 
+SHAP iteration 4 
+SHAP iteration 5 
+SHAP iteration 6 
+SHAP iteration 7 
+SHAP iteration 8 
+SHAP iteration 9 
+SHAP iteration 10 
+SHAP iteration 11 
+SHAP iteration 12 
+SHAP iteration 13 
+SHAP iteration 14 
+SHAP iteration 15 
+SHAP iteration 16 
+SHAP iteration 17 
+SHAP iteration 18 
+SHAP iteration 19 
+SHAP iteration 20 
+SHAP iteration 21 
+SHAP iteration 22 
+SHAP iteration 23 
+SHAP iteration 24 
+SHAP iteration 25 
+SHAP iteration 26 
+SHAP iteration 27 
+SHAP iteration 28 
+SHAP iteration 29 
+SHAP iteration 30 
+SHAP iteration 31 
+SHAP iteration 32 
+SHAP iteration 33 
+SHAP iteration 34 
+SHAP iteration 35 
+SHAP iteration 36 
+SHAP iteration 37 
+SHAP iteration 38 
+SHAP iteration 39 
+SHAP iteration 40 
+SHAP iteration 41 
+SHAP iteration 42 
+SHAP iteration 43 
+SHAP iteration 44 
+SHAP iteration 45 
+SHAP iteration 46 
+SHAP iteration 47 
+SHAP iteration 48 
+SHAP iteration 49 
+SHAP iteration 50 
+SHAP iteration 51 
+SHAP iteration 52 
+SHAP iteration 53 
+SHAP iteration 54 
+SHAP iteration 55 
+SHAP iteration 56 
+SHAP iteration 57 
+SHAP iteration 58 
+SHAP iteration 59 
+SHAP iteration 60 
+SHAP iteration 61 
+SHAP iteration 62 
+SHAP iteration 63 
+SHAP iteration 64 
+SHAP iteration 65 
+SHAP iteration 66 
+SHAP iteration 67 
+SHAP iteration 68 
+SHAP iteration 69 
+SHAP iteration 70 
+SHAP iteration 71 
+SHAP iteration 72 
+SHAP iteration 73 
+SHAP iteration 74 
+SHAP iteration 75 
+SHAP iteration 76 
+SHAP iteration 77 
+SHAP iteration 78 
+SHAP iteration 79 
+SHAP iteration 80 
+SHAP iteration 81 
+SHAP iteration 82 
+SHAP iteration 83 
+SHAP iteration 84 
+SHAP iteration 85 
+SHAP iteration 86 
+SHAP iteration 87 
+SHAP iteration 88 
+SHAP iteration 89 
+SHAP iteration 90 
+SHAP iteration 91 
+SHAP iteration 92 
+SHAP iteration 93 
+SHAP iteration 94 
+SHAP iteration 95 
+SHAP iteration 96 
+SHAP iteration 97 
+SHAP iteration 98 
+SHAP iteration 99 
+SHAP iteration 100 
+SHAP iteration 101 
+SHAP iteration 102 
+SHAP iteration 103 
+SHAP iteration 104 
+SHAP iteration 105 
+SHAP iteration 106 
+SHAP iteration 107 
+SHAP iteration 108 
+SHAP iteration 109 
+SHAP iteration 110 
+SHAP iteration 111 
+SHAP iteration 112 
+SHAP iteration 113 
+SHAP iteration 114 
+SHAP iteration 115 
+SHAP iteration 116 
+SHAP iteration 117 
+SHAP iteration 118 
+SHAP iteration 119 
+SHAP iteration 120 
+SHAP iteration 121 
+SHAP iteration 122 
+SHAP iteration 123 
+SHAP iteration 124 
+SHAP iteration 125 
+SHAP iteration 126 
+SHAP iteration 127 
+SHAP iteration 128 
+SHAP iteration 129 
+SHAP iteration 130 
+SHAP iteration 131 
+SHAP iteration 132 
+SHAP iteration 133 
+SHAP iteration 134 
+SHAP iteration 135 
+SHAP iteration 136 
+SHAP iteration 137 
+SHAP iteration 138 
+SHAP iteration 139 
+SHAP iteration 140 
+SHAP iteration 141 
+SHAP iteration 142 
+SHAP iteration 143 
+SHAP iteration 144 
+SHAP iteration 145 
+SHAP iteration 146 
+SHAP iteration 147 
+SHAP iteration 148 
+SHAP iteration 149 
+SHAP iteration 150 
+SHAP iteration 151 
+SHAP iteration 152 
+SHAP iteration 153 
+SHAP iteration 154 
+SHAP iteration 155 
+SHAP iteration 156 
+SHAP iteration 157 
+SHAP iteration 158 
+SHAP iteration 159 
+SHAP iteration 160 
+SHAP iteration 161 
+SHAP iteration 162 
+SHAP iteration 163 
+SHAP iteration 164 
+SHAP iteration 165 
+SHAP iteration 166 
+SHAP iteration 167 
+SHAP iteration 168 
+SHAP iteration 169 
+SHAP iteration 170 
+SHAP iteration 171 
+SHAP iteration 172 
+SHAP iteration 173 
+SHAP iteration 174 
+SHAP iteration 175 
+SHAP iteration 176 
+SHAP iteration 177 
+SHAP iteration 178 
+SHAP iteration 179 
+SHAP iteration 180 
+Errors (RMSE / MAE): 0.32885 0.21991 
