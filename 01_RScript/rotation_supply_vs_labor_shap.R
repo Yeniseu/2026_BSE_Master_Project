@@ -333,3 +333,8 @@ print(chart2)
 
 cat(sprintf("\nSaved: %s\n", out1))
 cat(sprintf("Saved: %s\n",   out2))
+
+
+
+cat(sprintf("Mean |SHAP| share — supply : %.4f%%\n", 100 * supply_abs_mean))
+cat(sprintf("Mean |SHAP| share — labor  : %.4f%%\n", 100 * labor_abs_mean))
