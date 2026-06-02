@@ -28,7 +28,8 @@ model_colors <- c(
   "Linear with Variable Selection"     = "#B79F00",   # olive / yellow-green
   "Non-Linear and Var. Selection"      = "#00BFC4",   # cyan / teal  (ensemble charts)
   "Non-Linear and Variable Selection"  = "#00BFC4",   # cyan / teal  (non-ensemble chart)
-  "Ensemble Models"                    = "#C77CFF"    # orchid / purple
+  "Ensemble Models"                    = "#C77CFF",    # orchid / purple
+  "Cleveland FED"                      = "#F1966D"   
 )
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1005,3 +1006,24 @@ all_fed_rmse_yearly <- rbind(all_fed_rmse_yearly, av_all)
 title_shock <- "**Out of Sample RMSE**"
 (shock_table_fed <- gt_table_shocks(all_fed_rmse_yearly, title_shock, "1-Months Ahead — Ensemble vs. Cleveland FED"))
 gtsave(shock_table_fed, filename = paste0("03_Output/Paper/RMSE", path, "/CL_FED_Comparison", path, ".png"))
+
+
+
+# Plot RMSE Figure with Ensemble
+plot_rmse <- all_fed_rmse_yearly[!is.na(Year)][!Year %in% c("Average All", "Av. After 2010")]
+plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
+ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
+  annotate("rect", xmin = 3.5, xmax = 4.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
+  annotate("text", x = "2020-2022", y = 0.4, label = "COVID", size = 3) +
+  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  scale_color_manual(values = model_colors) +
+  labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
+  guides(color = guide_legend(nrow = 2)) +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    plot.subtitle = element_text(hjust = 0.5),
+    legend.position = "top", 
+    legend.title = element_blank()
+  )
+ggsave(paste0("03_Output/Paper/RMSE", path, "/CL_FED_Comparison_chart", path, ".png"), width = 7, height = 5)
