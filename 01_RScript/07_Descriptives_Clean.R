@@ -144,7 +144,7 @@ cat("\nRegime descriptive table:\n"); print(desc_tbl)
 # ---- 4. Rolling 36-month Phillips correlation ----------------------------
 setorder(DT, date)
 DT[, roll_corr := zoo::rollapplyr(
-  data       = cbind(infl_mom, UNRATE),
+  data       = cbind(infl_mom, vu_ratio),
   width      = 36,
   FUN        = function(x) cor(x[, 1], x[, 2]),
   by.column  = FALSE,
@@ -176,7 +176,7 @@ p1a <- ggplot(DT, aes(x = date, y = infl_mom)) +
   geom_hline(yintercept = 0, colour = "grey40", linewidth = 0.3) +
   geom_line(colour = "#08306b", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
-  labs(title = "(a) Monthly CPI inflation",
+  labs(title = "(a) Monthly CPI Inflation",
        y = "%") +
   base_theme
 
@@ -186,7 +186,7 @@ p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
              linewidth = 0.3, linetype = "dashed") +
   geom_line(colour = "#08519c", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
-  labs(title = "(b) Vacancy / Unemployment ratio (HWIURATIO)",
+  labs(title = "(b) Vacancy / Unemployment ratio (v/u)",
        y = "ratio") +
   base_theme
 
@@ -195,31 +195,67 @@ p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
   geom_hline(yintercept = 0, colour = "grey40", linewidth = 0.3) +
   geom_line(colour = "#08306b", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
-  labs(title = expression(bold("(c) 36-month rolling corr("*pi*", u)")),
+  labs(title = expression(bold("(c) Correlation Between Inflation and v/u (36-month rolling)")),
        y = expression(rho)) +
   base_theme
 
 fig1 <- p1a / p1b / p1c
+fig1
 ggsave("03_Output/Paper/Descriptives/fig1_inflation_unemp_panel.pdf",
        fig1, width = 7.2, height = 7.5)
 
 # ---- 6. Figure 2: Phillips scatter (level UNRATE) by regime --------------
-p2 <- ggplot(DT, aes(x = UNRATE, y = infl_mom, colour = regime2)) +
+p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
   geom_point(alpha = 0.55, size = 2.0, stroke = 0) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.7) +
   scale_colour_manual(values = c(
     "Other periods"   = "black",
     "2008-2009 GFC"   = "red",
     "2020-2022 COVID" = "orange")) +
-  labs(x = "Unemployment rate, level (%)",
-       y = "Monthly CPI inflation (%)",
+  labs(x = "Vacancy to Unemployment Ratio",
+       y = "Monthly CPI Inflation",
        colour = NULL) +
   theme_minimal(base_size = 11) +
   theme(legend.position = "bottom",
         legend.text = element_text(size = 9),
         panel.grid.minor = element_blank())
-
+p2
 ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_by_regime.pdf",
        p2, width = 7.2, height = 4.4)
 
-cat("\nAll outputs written to 03_Output/Paper/Descriptives/\n")
+p3 <- ggplot(DT[regime2 != "2008-2009 GFC"], aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
+  geom_point(alpha = 0.55, size = 2.0, stroke = 0) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  scale_colour_manual(values = c(
+    "Other periods"   = "black",
+    "2008-2009 GFC"   = "red",
+    "2020-2022 COVID" = "orange")) +
+  labs(x = "Vacancy to Unemployment Ratio",
+       y = "Monthly CPI Inflation",
+       colour = NULL) +
+  theme_minimal(base_size = 11) + coord_cartesian(ylim = c(-2, 2)) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 9),
+        panel.grid.minor = element_blank())
+
+p4 <- ggplot(DT[regime2 != "2020-2022 COVID"], aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
+  geom_point(alpha = 0.55, size = 2.0, stroke = 0) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1) +
+  scale_colour_manual(values = c(
+    "Other periods"   = "black",
+    "2008-2009 GFC"   = "red",
+    "2020-2022 COVID" = "orange")) +
+  labs(x = "Vacancy to Unemployment Ratio",
+       y = "",
+       colour = NULL) +
+  theme_minimal(base_size = 11) + coord_cartesian(ylim = c(-2, 2)) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 9),
+        panel.grid.minor = element_blank())
+
+fig2 <- p3 * p4
+fig2
+ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_2charts.pdf",
+       fig2, width = 7, height = 4)
+       
+
