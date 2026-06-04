@@ -48,7 +48,8 @@ if (option_sample==1) {dt_s1<-data[1:s1_ends, ]                ; dt_s2 <- copy(d
 if (option_sample==2) {dt_s1<-data[(s1_ends-240-180):s1_ends, ]; dt_s2 <- data[(s2_ends-240-108):s2_ends, ];file="_20"}
 if (option_sample==3) {dt_s1<-data[(s1_ends-360-180):s1_ends, ]; dt_s2 <- data[(s2_ends-360-108):s2_ends, ];file="_30"}
 if (option_sample==4) {dt_s1<-data[(s1_ends-480-180):s1_ends, ]; dt_s2 <- data[(s2_ends-480-108):s2_ends, ];file="_40"}
-
+(nrow(dt_s1)-180)/12
+(nrow(dt_s2)-108)/12
 
 #### Run for different lags and samples
 ### Parameter Selection Using Sample 1
