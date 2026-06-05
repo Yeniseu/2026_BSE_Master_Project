@@ -259,3 +259,9 @@ ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_2charts.pdf",
        fig2, width = 7, height = 4)
        
 
+DT[, cor(infl_mom, vu_ratio)]
+DT[between(date, "2008-01-01", "2010-12-31"), cor(infl_mom, vu_ratio)]
+DT[between(date, "2020-01-01", "2022-12-31"), cor(infl_mom, vu_ratio)]
+DT[!(between(date, "2008-01-01", "2010-12-31") | between(date, "2020-01-01", "2022-12-31")), cor(infl_mom, vu_ratio)]
+
+
