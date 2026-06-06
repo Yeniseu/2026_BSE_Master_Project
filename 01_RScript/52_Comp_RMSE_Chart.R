@@ -23,15 +23,16 @@ if (option==4) {path = "_40"}
 
 # ── Shared colour palette (matches RMSE_Chart_3_Months_Ensemble.png) ──────────
 model_colors <- c(
-  "Linear Phillips Curve"              = "#F8766D",   # salmon / pink-red
-  "Non-Linear Phillips Curve"          = "#00BA38",   # green
-  "Linear with Variable Selection"     = "#B79F00",   # olive / yellow-green
-  "Non-Linear and Var. Selection"      = "#00BFC4",   # cyan / teal  (ensemble charts)
-  "Non-Linear and Variable Selection"  = "#00BFC4",   # cyan / teal  (non-ensemble chart)
-  "Ensemble Models"                    = "#C77CFF",    # orchid / purple
-  "Cleveland FED"                      = "#F1966D"   
+  "Linear Phillips Curve"              = "#6161BA",   # salmon / pink-red
+  "Non-Linear Phillips Curve"          = "#34BA66",   # green
+  "Linear with Variable Selection"     = "#B84444",   # olive / yellow-green
+  "Non-Linear and Var. Selection"      = "#C8B84A",   # cyan / teal  (ensemble charts)
+  "Non-Linear and Variable Selection"  = "#C8B84A",   # cyan / teal  (non-ensemble chart)
+  "Ensemble Models"                    = "#3A3A3A",    # orchid / purple
+  "Cleveland FED"                      = "#E07B3A"   
 )
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 
 #### Prepare Data and Functions for Sample 1 -----------------------------------
@@ -141,7 +142,7 @@ ggplot(all1_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   geom_point(size = 4) + 
   scale_color_viridis_d(option = "H") +
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
-  theme_minimal() + 
+  theme_minimal(base_family="Computer Modern") + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path,".png"), width = 7, height = 5)
 
@@ -212,7 +213,7 @@ ggplot(all1_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   geom_point(size = 4) + 
   scale_color_viridis_d(option = "H") +
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
-  theme_minimal() + 
+  theme_minimal(base_family="Computer Modern") + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path,".png"), width=7, height=5)
 
@@ -334,7 +335,7 @@ ggplot(all2_1_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   geom_point(size = 4) + 
   scale_color_viridis_d(option = "H") +
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
-  theme_minimal() + 
+  theme_minimal(base_family="Computer Modern") + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path, ".png"), width=7, height=5)
 #gtsave(Sample2_Step1, filename = paste0("03_Output/RMSE", path, "/Sample2_Step1", path, ".png"))
@@ -371,7 +372,7 @@ ggplot(all2_3_rmse_yearly_long, aes(x=Year, y=value, color=variable, group=varia
   geom_point(size = 4) + 
   scale_color_viridis_d(option = "H") +
   labs(title=caption, x="Year", y="Output Per Worker Index", color="") +
-  theme_minimal() + 
+  theme_minimal(base_family="Computer Modern") + 
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5, face = "bold"))
 #ggsave(paste0("03_Output/Exercise c/Growth_Acc_Cumulative_hclc", path, ".png"), width=7, height=5)
 #gtsave(Sample2_Step3, filename = "03_Output/RMSE/Sample2_Step3.png")
@@ -495,7 +496,7 @@ gtsave(shock_table_wei, filename = paste0("03_Output/Paper/RMSE", path, "/ShockT
 plot_rmse <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
 plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
 ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
-  geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
+  geom_line(size = 1) + geom_point(size = 2) + theme_minimal(base_family="Computer Modern") +
   scale_color_manual(values = model_colors) +
   annotate("rect", xmin = 2.5, xmax = 3.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
   annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
@@ -519,7 +520,7 @@ plot_rmse_only2 <- shock_table_weighted[!is.na(Year)][Year!="Average All"]
 plot_rmse_only2 <- plot_rmse_only2[, c("Year", "Linear Phillips Curve", "Non-Linear and Variable Selection")]
 plot_rmse_only2 <- melt(plot_rmse_only2, id.vars = "Year", variable.name = "Model", value.name = "RMSE")
 ggplot(plot_rmse_only2, aes(x = Year, y = RMSE, group = Model, color = Model)) +
-  geom_line(size = 1) + geom_point(size = 2) + theme_minimal() +
+  geom_line(size = 1) + geom_point(size = 2) + theme_minimal(base_family="Computer Modern") +
   scale_color_manual(values = model_colors) +
   annotate("rect", xmin = 2.5, xmax = 3.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
   annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
@@ -740,7 +741,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
-  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal(base_family="Computer Modern") +
   scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +
@@ -937,7 +938,7 @@ ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("rect", xmin = 6.5, xmax = 7.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
   annotate("text", x = "2008-10", y = 0.55, label = "GFC", size = 3) +
   annotate("text", x = "2020-22", y = 0.55, label = "COVID", size = 3) +
-  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal(base_family="Computer Modern") +
   scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "1-Months Ahead", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +
@@ -1002,11 +1003,26 @@ post2010_rows <- all_fed_rmse_yearly[Year %in% c("2011-2013", "2014-2016", "2017
 av_all        <- data.table(Year = "Average All",    t(round(colMeans(all_fed_rmse_yearly[, -"Year"]), 3)))
 all_fed_rmse_yearly <- rbind(all_fed_rmse_yearly, av_all)
 
+#gt_table_shocks_dif_color <- function(data, title, subtitle) {
+#  res <- data |>
+#    gt() |>
+#    tab_header(title=md(title), subtitle=subtitle) |>
+#    cols_align(align = "center") |>
+#    tab_style(style = cell_text(weight = "bold"), locations = cells_column_labels()) |> 
+#    tab_style(
+#      style = list(cell_borders(sides = c("top", "bottom"), color = "black", 
+#                                weight = px(3)), style = cell_fill(color = "#E8E8E8")),
+#      locations = cells_body(rows = Year %in% c("2008-2010", "2020-2022", "2008-10", "2020-22", "Average", "Average All", "Av. After 2010"))
+#    ) |>
+#    data_color(columns = -Year, direction = "row",    
+#               palette = c("#6161BA", "white", "#B84444")) |>
+#    tab_options(table.font.names = "Consolas")
+#  return(res)
+#}
 # Render the gt table (same style as shock_table_wei)
 title_shock <- "**Out of Sample RMSE**"
 (shock_table_fed <- gt_table_shocks(all_fed_rmse_yearly, title_shock, "1-Months Ahead — Ensemble vs. Cleveland FED"))
 gtsave(shock_table_fed, filename = paste0("03_Output/Paper/RMSE", path, "/CL_FED_Comparison", path, ".png"))
-
 
 
 # Plot RMSE Figure with Ensemble
@@ -1015,7 +1031,7 @@ plot_rmse <- melt(plot_rmse, id.vars = "Year", variable.name = "Model", value.na
 ggplot(plot_rmse, aes(x = Year, y = RMSE, group = Model, color = Model)) +
   annotate("rect", xmin = 3.5, xmax = 4.5 , ymin = -Inf, ymax = Inf, fill = "darkgrey", alpha = 0.2) +
   annotate("text", x = "2020-2022", y = 0.4, label = "COVID", size = 3) +
-  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal() +
+  geom_line(size = 1) +  geom_point(size = 2) + theme_minimal(base_family="Computer Modern") +
   scale_color_manual(values = model_colors) +
   labs(title = "Out of Sample RMSE", subtitle = "3-Months Ahead", x = "", y = "RMSE") +
   guides(color = guide_legend(nrow = 2)) +

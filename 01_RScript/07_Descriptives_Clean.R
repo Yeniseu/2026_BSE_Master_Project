@@ -1,4 +1,3 @@
-# ============================================================================
 # 07_Descriptives_Clean.R
 # Master's Thesis: The State-Dependent Phillips Curve
 # Authors: E. Tasan Ozel, E. Infante, O. Ozel, M. Bratkowska, Z. Pehlivan
@@ -24,7 +23,6 @@
 # choice -- forecasting models continue to use the stationary cleaned series.
 #
 # Style: uses data.table.  ggplot2 only for plots.
-# ============================================================================
 
 # ---- 0. Packages ----------------------------------------------------------
 required <- c("data.table", "ggplot2", "patchwork", "zoo",
@@ -157,7 +155,7 @@ shock_bands <- list(
   geom_rect(data = shocks,
             aes(xmin = start, xmax = end,
                 ymin = -Inf, ymax =  Inf),
-            fill = "grey75", alpha = 0.30,
+            fill = "darkgrey", alpha = 0.2,
             inherit.aes = FALSE),
   annotate("text", x = as.Date("2009-01-01"), y =  Inf,
            label = "GFC",   vjust = 1.4, size = 3, colour = "grey25"),
@@ -176,8 +174,7 @@ p1a <- ggplot(DT, aes(x = date, y = infl_mom)) +
   geom_hline(yintercept = 0, colour = "grey40", linewidth = 0.3) +
   geom_line(colour = "#08306b", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
-  labs(title = "(a) Monthly CPI Inflation",
-       y = "%") +
+  labs(title = "(a) Monthly CPI Inflation", y = "%", x=NULL) +
   base_theme
 
 p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
@@ -186,8 +183,7 @@ p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
              linewidth = 0.3, linetype = "dashed") +
   geom_line(colour = "#08519c", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
-  labs(title = "(b) Vacancy / Unemployment ratio (v/u)",
-       y = "ratio") +
+  labs(title = "(b) Vacancy / Unemployment ratio (v/u)", y = "ratio", x=NULL) +
   base_theme
 
 p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
@@ -196,7 +192,7 @@ p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
   geom_line(colour = "#08306b", linewidth = 0.6) +
   scale_x_date(date_breaks = "3 years", date_labels = "%Y") +
   labs(title = expression(bold("(c) Correlation Between Inflation and v/u (36-month rolling)")),
-       y = expression(rho)) +
+       y = expression(rho), x=NULL) +
   base_theme
 
 fig1 <- p1a / p1b / p1c
@@ -270,7 +266,7 @@ scatter_colors <- c(
 # ============================================================
 
 theme_ec <- function(base_size = 11, legend = "none") {
-  theme_minimal(base_size = base_size, base_family = "serif") %+replace%
+  theme_minimal(base_size = base_size, base_family = "Computer Modern") %+replace%
     theme(
       plot.background  = element_rect(fill = "white", colour = NA),
       panel.background = element_rect(fill = "white", colour = NA),
@@ -326,8 +322,6 @@ ec_annotation_theme <- theme(
                                family = "serif", hjust = 0,
                                colour = "#444455",
                                margin = margin(t = 8)),
-  plot.background = element_rect(fill = "white", colour = COL_RULE,
-                                 linewidth = 2.2)
 )
 
 
@@ -443,10 +437,10 @@ shock_bands <- list(
             fill = COL_BAND, alpha = 0.45, inherit.aes = FALSE),
   annotate("text", x = as.Date("2009-01-01"), y = Inf,
            label = "GFC",   vjust = 1.6, size = 3,
-           family = "serif", fontface = "italic", colour = "#444455"),
+           family = "serif"),
   annotate("text", x = as.Date("2021-06-01"), y = Inf,
            label = "COVID", vjust = 1.6, size = 3,
-           family = "serif", fontface = "italic", colour = "#444455")
+           family = "serif")
 )
 
 x_scale <- scale_x_date(date_breaks = "3 years", date_labels = "%Y",
@@ -457,7 +451,7 @@ p1a <- ggplot(DT, aes(x = date, y = infl_mom)) +
   geom_hline(yintercept = 0, colour = "#AAAABC", linewidth = 0.35) +
   geom_line(colour = COL_INFL, linewidth = 0.7) +
   x_scale +
-  labs(title = "(a) Monthly CPI inflation", y = "%") +
+  labs(title = "(a) Monthly CPI inflation", y = "%", x=NULL) +
   theme_ec()
 
 p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
@@ -466,8 +460,8 @@ p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
              linewidth = 0.35, linetype = "22") +
   geom_line(colour = COL_VU, linewidth = 0.7) +
   x_scale +
-  labs(title = "(b) Vacancy / Unemployment ratio (v/u)", y = "ratio") +
-  theme_ec()
+  labs(title = "(b) Vacancy / Unemployment ratio (v/u)", y = "ratio", x=NULL) +
+  theme_ec() 
 
 p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
   shock_bands +
@@ -475,20 +469,19 @@ p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
   geom_line(colour = COL_CORR, linewidth = 0.7) +
   x_scale +
   labs(title = expression(bold("(c) Correlation between inflation and v/u (36-month rolling)")),
-       y = expression(rho)) +
+       y = expression(rho), x=NULL) +
   theme_ec()
 
 fig1 <- (p1a / p1b / p1c) +
   plot_annotation(
-    title    = "Inflation dynamics and labour market, 2002–2024",
-    subtitle = "Monthly CPI inflation, vacancy-unemployment ratio, and rolling correlation",
-    caption  = "Shaded bands: GFC (2008–09) and COVID (2020–22) periods.",
+    #title    = "Inflation dynamics and labour market, 2002–2024",
+    #subtitle = "Monthly CPI inflation, vacancy-unemployment ratio, and rolling correlation",
     theme    = ec_annotation_theme
   )
 
 fig1
 ggsave("03_Output/Paper/Descriptives/fig1_inflation_unemp_panel.pdf",
-       fig1, width = 7.2, height = 7.5, bg = "white")
+       fig1, width = 6, height = 6, bg = "white")
 
 
 # ---- 6. Figure 2: full scatter (all three regimes) -----------------------
@@ -509,9 +502,7 @@ p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
   ) +
   theme_ec(legend = "bottom") +
   theme(
-    legend.justification = "left",
-    plot.background = element_rect(fill = "white", colour = COL_RULE,
-                                   linewidth = 2.2)
+    legend.justification = "left"
   )
 
 p2
@@ -533,7 +524,7 @@ build_scatter <- function(data, title) {
     labs(title = title,
          x = "Vacancy to unemployment ratio",
          y = "Monthly CPI inflation (%)") +
-    theme_ec(legend = "bottom") +
+    theme_ec(legend = "top") +
     theme(legend.justification = "left")
 }
 
@@ -545,15 +536,12 @@ p4 <- build_scatter(DT[regime2 != "2020-2022 COVID"],
 
 fig2 <- (p3 | p4) +
   plot_annotation(
-    title    = "Phillips curve robustness: excluding shock periods",
-    subtitle = "OLS fit by regime; y-axis clipped to [−2, 2] for comparability",
-    caption  = "Left: COVID retained, GFC excluded. Right: GFC retained, COVID excluded.",
     theme    = ec_annotation_theme
   )
 
 fig2
 ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_2charts.pdf",
-       fig2, width = 10, height = 5, bg = "white")
+       fig2, width = 6.5, height = 3.5, bg = "white")
 
 DT[, cor(infl_mom, vu_ratio)]
 DT[between(date, "2008-01-01", "2010-12-31"), cor(infl_mom, vu_ratio)]
