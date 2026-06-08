@@ -62,26 +62,26 @@ DT[, `:=`(
 )]
 
 # Regime classification.  Two shock windows; the rest are pooled
-# visually but kept as labelled sub-periods in the descriptive table.
-DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Other periods (pre-2008)",
+# visually but kept as labelled sub-Periods in the descriptive table.
+DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Normal Periods (pre-2008)",
               fifelse(date <  as.Date("2010-01-01"), "2008-2009 GFC",
-              fifelse(date <  as.Date("2020-01-01"), "Other periods (2010-2019)",
+              fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
               fifelse(date <  as.Date("2023-01-01"), "2020-2022 COVID",
-                                                    "Other periods (post-2022)"))))]
+                                                    "Normal Periods (post-2022)"))))]
 
-regime_levels <- c("Other periods (pre-2008)",
+regime_levels <- c("Normal Periods (pre-2008)",
                    "2008-2009 GFC",
-                   "Other periods (2010-2019)",
+                   "Normal Periods (2010-2019)",
                    "2020-2022 COVID",
-                   "Other periods (post-2022)")
+                   "Normal Periods (post-2022)")
 DT[, regime := factor(regime, levels = regime_levels)]
 
 # Binary collapse used in the scatter (Shock vs Other)
 DT[, regime2 := fifelse(regime %in% c("2008-2009 GFC", "2020-2022 COVID"),
                         as.character(regime),
-                        "Other periods")]
+                        "Normal Periods")]
 DT[, regime2 := factor(regime2,
-                       levels = c("Other periods",
+                       levels = c("Normal Periods",
                                   "2008-2009 GFC",
                                   "2020-2022 COVID"))]
 
@@ -205,7 +205,7 @@ p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
   geom_point(alpha = 0.55, size = 2.0, stroke = 0) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.7) +
   scale_colour_manual(values = c(
-    "Other periods"   = "black",
+    "Normal Periods"   = "black",
     "2008-2009 GFC"   = "red",
     "2020-2022 COVID" = "orange")) +
   labs(x = "Vacancy to Unemployment Ratio",
@@ -247,7 +247,7 @@ invisible(lapply(required, library, character.only = TRUE))
 COL_INFL  <- "#6161BA"   # periwinkle  — inflation line
 COL_VU    <- "#34BA66"   # green       — v/u ratio line
 COL_CORR  <- "#6161BA"   # periwinkle  — rolling correlation
-COL_OTHER <- "#555566"   # dark slate  — scatter: other periods
+COL_OTHER <- "#555566"   # dark slate  — scatter: Normal Periods
 COL_GFC   <- "#BA3B35"   # deep red    — scatter: GFC
 COL_COVID <- "#BAA237"   # warm gold   — scatter: COVID
 COL_BAND  <- "#CCCCDD"   # violet-grey — shock bands
@@ -255,7 +255,8 @@ COL_TEXT  <- "#1a1a2e"   # near-black  — all text
 COL_RULE  <- "#6161BA"   # top border accent
 
 scatter_colors <- c(
-  "Other periods"   = COL_OTHER,
+  "Calm Periods"   = COL_OTHER,
+  "Normal Periods"   = COL_OTHER,
   "2008-2009 GFC"   = COL_GFC,
   "2020-2022 COVID" = COL_COVID
 )
@@ -265,22 +266,22 @@ scatter_colors <- c(
 # Economist base theme
 # ============================================================
 
-theme_ec <- function(base_size = 11, legend = "none") {
+theme_ec <- function(base_size = 11, legend = "none", size = 10) {
   theme_minimal(base_size = base_size, base_family = "Computer Modern") %+replace%
     theme(
       plot.background  = element_rect(fill = "white", colour = NA),
       panel.background = element_rect(fill = "white", colour = NA),
       plot.margin      = margin(t = 10, r = 14, b = 6, l = 8),
       
-      plot.title    = element_text(face = "bold",   size = 12,
+      plot.title    = element_text(face = "bold",   size = size+2,
                                    family = "serif", hjust = 0,
                                    colour = COL_TEXT,
                                    margin = margin(b = 3)),
-      plot.subtitle = element_text(face = "italic", size = 10,
+      plot.subtitle = element_text(face = "italic", size = size,
                                    family = "serif", hjust = 0,
                                    colour = "#444455",
                                    margin = margin(b = 8)),
-      plot.caption  = element_text(face = "italic", size = 9,
+      plot.caption  = element_text(face = "italic", size = size-1,
                                    family = "serif", hjust = 0,
                                    colour = "#444455",
                                    margin = margin(t = 6)),
@@ -288,8 +289,8 @@ theme_ec <- function(base_size = 11, legend = "none") {
       plot.caption.position = "plot",
       
       axis.title = element_text(family = "serif", face = "italic",
-                                size = 10, colour = COL_TEXT),
-      axis.text  = element_text(family = "serif", size = 10,
+                                size = size, colour = COL_TEXT),
+      axis.text  = element_text(family = "serif", size = size,
                                 colour = COL_TEXT),
       axis.line.x = element_line(colour = "#AAAABC", linewidth = 0.35),
       axis.line.y = element_blank(),
@@ -301,7 +302,7 @@ theme_ec <- function(base_size = 11, legend = "none") {
       
       legend.position   = legend,
       legend.title      = element_blank(),
-      legend.text       = element_text(family = "serif", size = 10,
+      legend.text       = element_text(family = "serif", size = size,
                                        colour = COL_TEXT),
       legend.key.width  = unit(1.6, "lines"),
       legend.key.height = unit(0.5, "lines"),
@@ -350,20 +351,20 @@ DT[, `:=`(
   vu_ratio = HWIURATIO
 )]
 
-regime_levels <- c("Other periods (pre-2008)", "2008-2009 GFC",
-                   "Other periods (2010-2019)", "2020-2022 COVID",
-                   "Other periods (post-2022)")
-DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Other periods (pre-2008)",
+regime_levels <- c("Normal Periods (pre-2008)", "2008-2009 GFC",
+                   "Normal Periods (2010-2019)", "2020-2022 COVID",
+                   "Normal Periods (post-2022)")
+DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Normal Periods (pre-2008)",
                        fifelse(date <  as.Date("2010-01-01"), "2008-2009 GFC",
-                               fifelse(date <  as.Date("2020-01-01"), "Other periods (2010-2019)",
+                               fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
                                        fifelse(date <  as.Date("2023-01-01"), "2020-2022 COVID",
-                                               "Other periods (post-2022)"))))]
+                                               "Normal Periods (post-2022)"))))]
 DT[, regime := factor(regime, levels = regime_levels)]
 
 DT[, regime2 := fifelse(regime %in% c("2008-2009 GFC", "2020-2022 COVID"),
-                        as.character(regime), "Other periods")]
+                        as.character(regime), "Normal Periods")]
 DT[, regime2 := factor(regime2,
-                       levels = c("Other periods", "2008-2009 GFC", "2020-2022 COVID"))]
+                       levels = c("Normal Periods", "2008-2009 GFC", "2020-2022 COVID"))]
 
 shocks <- data.table(
   shock = c("GFC", "COVID"),
@@ -451,7 +452,7 @@ p1a <- ggplot(DT, aes(x = date, y = infl_mom)) +
   geom_hline(yintercept = 0, colour = "#AAAABC", linewidth = 0.35) +
   geom_line(colour = COL_INFL, linewidth = 0.7) +
   x_scale +
-  labs(title = "(a) Monthly CPI inflation", y = "%", x=NULL) +
+  labs(title = "(a) Monthly CPI Inflation", y = "%", x=NULL) +
   theme_ec()
 
 p1b <- ggplot(DT, aes(x = date, y = vu_ratio)) +
@@ -475,7 +476,7 @@ p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
 fig1 <- (p1a / p1b / p1c) +
   plot_annotation(
     #title    = "Inflation dynamics and labour market, 2002–2024",
-    #subtitle = "Monthly CPI inflation, vacancy-unemployment ratio, and rolling correlation",
+    #subtitle = "Monthly CPI Inflation, vacancy-unemployment ratio, and rolling correlation",
     theme    = ec_annotation_theme
   )
 
@@ -485,29 +486,27 @@ ggsave("03_Output/Paper/Descriptives/fig1_inflation_unemp_panel.pdf",
 
 
 # ---- 6. Figure 2: full scatter (all three regimes) -----------------------
-
+#DT[regime2 == "Normal Periods", regime2 := "Calm Periods"]
 p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
   geom_point(alpha = 0.50, size = 2.0, stroke = 0) +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1.5) +
   scale_colour_manual(
     values = scatter_colors,
-    guide  = guide_legend(override.aes = list(size = 3, alpha = 0.85, linetype = 0))
+    guide  = guide_legend(nrow=2, override.aes = list(size = 3, alpha = 0.85, linetype = 0))
   ) +
   labs(
-    title    = "The Phillips curve by regime",
-    subtitle = "Monthly CPI inflation vs. vacancy-unemployment ratio, 2002–2024",
+    #title    = "The Phillips curve by regime",
+    #subtitle = "Monthly CPI Inflation vs. vacancy-unemployment ratio, 2002–2024",
     x        = "Vacancy to unemployment ratio",
-    y        = "Monthly CPI inflation (%)",
-    caption  = "OLS fit lines estimated separately per regime."
+    y        = "Monthly CPI Inflation (%)",
+    #caption  = "OLS fit lines estimated separately per regime."
   ) +
-  theme_ec(legend = "bottom") +
-  theme(
-    legend.justification = "left"
-  )
+  theme_ec(legend = "top", size = 20)
 
 p2
+
 ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_by_regime.pdf",
-       p2, width = 7.2, height = 4.8, bg = "white")
+       p2, width = 5, height = 6, bg = "white")
 
 
 # ---- 7. Figure 3: side-by-side scatters (excl. one shock each) ----------
@@ -523,7 +522,7 @@ build_scatter <- function(data, title) {
     coord_cartesian(ylim = c(-2, 2)) +
     labs(title = title,
          x = "Vacancy to unemployment ratio",
-         y = "Monthly CPI inflation (%)") +
+         y = "Monthly CPI Inflation (%)") +
     theme_ec(legend = "top") +
     theme(legend.justification = "left")
 }
