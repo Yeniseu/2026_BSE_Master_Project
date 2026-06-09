@@ -64,26 +64,26 @@ DT[, `:=`(
 # Regime classification.  Two shock windows; the rest are pooled
 # visually but kept as labelled sub-Periods in the descriptive table.
 DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Normal Periods (pre-2008)",
-              fifelse(date <  as.Date("2010-01-01"), "2008-2009 GFC",
+              fifelse(date <  as.Date("2011-01-01"), "2008-10 GFC",
               fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
-              fifelse(date <  as.Date("2023-01-01"), "2020-2022 COVID",
+              fifelse(date <  as.Date("2023-01-01"), "2020-22 COVID",
                                                     "Normal Periods (post-2022)"))))]
 
 regime_levels <- c("Normal Periods (pre-2008)",
-                   "2008-2009 GFC",
+                   "2020-22 GFC",
                    "Normal Periods (2010-2019)",
-                   "2020-2022 COVID",
+                   "2020-22 COVID",
                    "Normal Periods (post-2022)")
 DT[, regime := factor(regime, levels = regime_levels)]
 
 # Binary collapse used in the scatter (Shock vs Other)
-DT[, regime2 := fifelse(regime %in% c("2008-2009 GFC", "2020-2022 COVID"),
+DT[, regime2 := fifelse(regime %in% c("2008-10 GFC", "2020-22 COVID"),
                         as.character(regime),
                         "Normal Periods")]
 DT[, regime2 := factor(regime2,
                        levels = c("Normal Periods",
-                                  "2008-2009 GFC",
-                                  "2020-2022 COVID"))]
+                                  "2008-10 GFC",
+                                  "2020-22 COVID"))]
 
 shocks <- data.table(
   shock = c("GFC", "COVID"),
@@ -206,8 +206,8 @@ p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
   geom_smooth(method = "lm", se = FALSE, linewidth = 0.7) +
   scale_colour_manual(values = c(
     "Normal Periods"   = "black",
-    "2008-2009 GFC"   = "red",
-    "2020-2022 COVID" = "orange")) +
+    "2008-10 GFC"   = "red",
+    "2020-22 COVID" = "orange")) +
   labs(x = "Vacancy to Unemployment Ratio",
        y = "Monthly CPI Inflation",
        colour = NULL) +
@@ -247,9 +247,9 @@ invisible(lapply(required, library, character.only = TRUE))
 COL_INFL  <- "#6161BA"   # periwinkle  — inflation line
 COL_VU    <- "#34BA66"   # green       — v/u ratio line
 COL_CORR  <- "#6161BA"   # periwinkle  — rolling correlation
-COL_OTHER <- "#555566"   # dark slate  — scatter: Normal Periods
-COL_GFC   <- "#BA3B35"   # deep red    — scatter: GFC
-COL_COVID <- "#BAA237"   # warm gold   — scatter: COVID
+COL_OTHER <- "#1a1a2e"   # dark slate  — scatter: Normal Periods
+COL_GFC   <- "red"   # deep red    — scatter: GFC
+COL_COVID <- "#6161BA"   # warm gold   — scatter: COVID
 COL_BAND  <- "#CCCCDD"   # violet-grey — shock bands
 COL_TEXT  <- "#1a1a2e"   # near-black  — all text
 COL_RULE  <- "#6161BA"   # top border accent
@@ -257,8 +257,8 @@ COL_RULE  <- "#6161BA"   # top border accent
 scatter_colors <- c(
   "Calm Periods"   = COL_OTHER,
   "Normal Periods"   = COL_OTHER,
-  "2008-2009 GFC"   = COL_GFC,
-  "2020-2022 COVID" = COL_COVID
+  "2008-10 GFC"   = COL_GFC,
+  "2020-22 COVID" = COL_COVID
 )
 
 
@@ -351,20 +351,20 @@ DT[, `:=`(
   vu_ratio = HWIURATIO
 )]
 
-regime_levels <- c("Normal Periods (pre-2008)", "2008-2009 GFC",
-                   "Normal Periods (2010-2019)", "2020-2022 COVID",
+regime_levels <- c("Normal Periods (pre-2008)", "2008-10 GFC",
+                   "Normal Periods (2010-2019)", "2020-22 COVID",
                    "Normal Periods (post-2022)")
 DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Normal Periods (pre-2008)",
-                       fifelse(date <  as.Date("2010-01-01"), "2008-2009 GFC",
-                               fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
-                                       fifelse(date <  as.Date("2023-01-01"), "2020-2022 COVID",
+                       fifelse(date <  as.Date("2011-01-01"), "2008-10 GFC",
+                      fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
+                      fifelse(date <  as.Date("2023-01-01"), "2020-22 COVID",
                                                "Normal Periods (post-2022)"))))]
 DT[, regime := factor(regime, levels = regime_levels)]
 
-DT[, regime2 := fifelse(regime %in% c("2008-2009 GFC", "2020-2022 COVID"),
+DT[, regime2 := fifelse(regime %in% c("2008-10 GFC", "2020-22 COVID"),
                         as.character(regime), "Normal Periods")]
 DT[, regime2 := factor(regime2,
-                       levels = c("Normal Periods", "2008-2009 GFC", "2020-2022 COVID"))]
+                       levels = c("Normal Periods", "2008-10 GFC", "2020-22 COVID"))]
 
 shocks <- data.table(
   shock = c("GFC", "COVID"),
@@ -488,12 +488,25 @@ ggsave("03_Output/Paper/Descriptives/fig1_inflation_unemp_panel.pdf",
 # ---- 6. Figure 2: full scatter (all three regimes) -----------------------
 #DT[regime2 == "Normal Periods", regime2 := "Calm Periods"]
 p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
-  geom_point(alpha = 0.50, size = 2.0, stroke = 0) +
-  geom_smooth(method = "lm", se = FALSE, linewidth = 1.5) +
+  geom_point(alpha = 0.40, size = 2.0, stroke = 0) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1.25) +
   scale_colour_manual(
     values = scatter_colors,
-    guide  = guide_legend(nrow=2, override.aes = list(size = 3, alpha = 0.85, linetype = 0))
+    guide  = guide_legend(nrow=1, override.aes = list(size = 3, alpha = 0.85, linetype = 0))
   ) +
+  labs(x="Vacancy to unemployment ratio", y="Monthly CPI Inflation (%)"
+  ) +
+  theme_ec(legend = "top", size = 20)
+p2
+
+p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
+  geom_point(alpha = 0.40, size = 2.0, stroke = 0) +
+  geom_smooth(method = "lm", se = FALSE, linewidth = 1.25) +
+  scale_colour_manual(
+    values = scatter_colors,
+    guide  = guide_legend(nrow=1, override.aes = list(size = 3, alpha = 0.85, linetype = 0))
+  ) +
+  coord_cartesian(ylim = c(-1.67, 1.245)) + # Sets the exact y-axis boundaries
   labs(
     #title    = "The Phillips curve by regime",
     #subtitle = "Monthly CPI Inflation vs. vacancy-unemployment ratio, 2002–2024",
@@ -501,12 +514,15 @@ p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
     y        = "Monthly CPI Inflation (%)",
     #caption  = "OLS fit lines estimated separately per regime."
   ) +
-  theme_ec(legend = "top", size = 20)
-
+  theme_ec(legend = "top", size = 20) +
+  theme(
+    legend.margin = margin(t = -1, r = 90, b = 0, l = 0, unit = "pt"),
+    legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+    plot.margin = margin(t = 0, r = 5.5, b = 5.5, l = 5.5, unit = "pt") 
+  )
 p2
-
 ggsave("03_Output/Paper/Descriptives/fig2_phillips_scatter_by_regime.pdf",
-       p2, width = 5, height = 6, bg = "white")
+       p2, width = 7, height = 7, bg = "white")
 
 
 # ---- 7. Figure 3: side-by-side scatters (excl. one shock each) ----------
@@ -527,9 +543,9 @@ build_scatter <- function(data, title) {
     theme(legend.justification = "left")
 }
 
-p3 <- build_scatter(DT[regime2 != "2008-2009 GFC"],
+p3 <- build_scatter(DT[regime2 != "2008-10 GFC"],
                     "  ")
-p4 <- build_scatter(DT[regime2 != "2020-2022 COVID"],
+p4 <- build_scatter(DT[regime2 != "2020-22 COVID"],
                     "  ") +
   labs(y = "")   # suppress y-label on right panel
 
