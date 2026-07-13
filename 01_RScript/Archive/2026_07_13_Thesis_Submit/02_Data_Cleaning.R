@@ -11,20 +11,12 @@ data_transformed <- readRDS("02_Input/data_transformed.rds")
 
 # data_transformed has 800 obs and 127 variables
 
-# Keep the sample range defined in 00_Config.R.
-# NOTE: this used to be hard-coded to 2024-12-31, which silently discarded the
-# whole of 2025 even though the raw FRED-MD vintage (2026-01-MD.csv) runs to
-# 2025-12. Set SAMPLE_END in 00_Config.R to extend the sample.
-source("01_RScript/00_Config.R")
-
-keep <- data_transformed$date >= SAMPLE_START
-if (!is.na(SAMPLE_END)) keep <- keep & data_transformed$date <= SAMPLE_END
-data_cleaned_withNA <- data_transformed[keep, ]
-
-cat(sprintf("Sample: %s .. %s  (%d obs, %d variables)\n",
-            format(min(data_cleaned_withNA$date)),
-            format(max(data_cleaned_withNA$date)),
-            nrow(data_cleaned_withNA), ncol(data_cleaned_withNA)))
+# Keep data from January 1960 to Dec 2024 only - 780 observations
+data_cleaned_withNA <- data_transformed[
+  data_transformed$date >= as.Date("1960-01-01") &
+    data_transformed$date <= as.Date("2024-12-31"),
+]
+# Data now has 780 obs and 127 variables
 
 # Investigate columns with NAs to decide how to deal with them
 
