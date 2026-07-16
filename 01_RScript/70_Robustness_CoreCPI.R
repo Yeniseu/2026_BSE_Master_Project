@@ -1,43 +1,65 @@
 # ============================================================================
-# 70_Robustness_CoreCPI.R   [paper TODO 3]  -- NOT run by default: slow.
+# 70_Robustness_CoreCPI.R   [paper TODO 3]  -- data preparation step
 #
-# Re-runs the whole forecasting exercise with core inflation as the target.
-# Headline CPI is dominated by energy at short horizons, so core targets isolate
-# the Phillips-Curve-relevant component of the forecast gains.
+# FRED-MD does NOT contain core CPI or core PCE, so the alternative target has
+# to be brought in from a separate FRED download and spliced into the cleaned
+# panel. This script does the splice; it does NOT run any models.
 #
-#   CPILFESL  core CPI  (CPI less food and energy)   -- in FRED-MD
-#   PCEPI     PCE deflator                           -- in FRED-MD
+# What it does:
+#   1. reads the raw core index from an Excel file in 02_Input/,
+#   2. transforms it to the SAME target convention as headline CPI,
+#      pi_t = 100 * (log CPI_t - log CPI_{t-1})   (a single log-difference;
+#      verified to reproduce data_cleaned$CPIAUCSL exactly),
+#   3. replaces the CPIAUCSL column of data_cleaned.rds with the core series,
+#      leaving every predictor untouched,
+#   4. saves 02_Input/data_cleaned_<SERIES>.rds.
 #
-# Usage: set TARGET below, then run. Everything downstream is unchanged, only
-# the output directory differs.
+# Then, to produce the robustness results:
+#   * set  TARGET <- "<SERIES>"  in 00_Config.R   (e.g. "CPILFESL")
+#   * re-run 10 -> 15 -> 18 -> 20 -> 50 -> 52 -> 60 -> 61
+#   Everything routes into 03_Output/.../Robustness_<SERIES> and
+#   06_Latex/Figures/Robustness_<SERIES>, so the headline results are untouched.
 #
-#   Rscript 01_RScript/70_Robustness_CoreCPI.R CPILFESL
-# ============================================================================
+# ---------------------------------------------------------------------------
+# Point these two at your download. The Excel file is the standard FRED export
+# (a "Monthly" sheet with columns observation_date and the series code).
+CORE_SERIES <- "CPILFESL"                              # FRED series code = target
+CORE_FILE   <- "02_Input/Core_Inf_CPILFESL.xlsx"       # raw index levels
+CORE_SHEET  <- "Monthly"
+# ---------------------------------------------------------------------------
+
 source("01_RScript/00_Config.R")
+library(readxl)
 
-args   <- commandArgs(trailingOnly = TRUE)
-TARGET <- if (length(args)) args[1] else "CPILFESL"
-stopifnot(TARGET %in% c("CPILFESL", "PCEPI"))
+## 1. raw core index --------------------------------------------------------
+core <- as.data.table(read_excel(CORE_FILE, sheet = CORE_SHEET))
+setnames(core, 1:2, c("date", "level"))
+core[, date := as.Date(date)]
+core <- core[!is.na(level)]
+setorder(core, date)
 
-# Route all output to a target-specific folder so the baseline is never touched
-P_PRED  <<- file.path(P_OUT,   "Preds", TARGET)
-P_PAPER <<- file.path(P_OUT,   "Paper", paste0("Robustness_", TARGET))
-dir.create(P_PRED,  showWarnings = FALSE, recursive = TRUE)
-dir.create(P_PAPER, showWarnings = FALSE, recursive = TRUE)
+## 2. same transform as headline: 100 * first difference of log ------------
+core[, target := 100 * (log(level) - log(shift(level, 1)))]
 
-# Swap the target: the pipeline always forecasts the column called CPIAUCSL, so
-# we rename the chosen core series into that slot and drop the original.
+## 3. splice into the cleaned panel ----------------------------------------
 data <- readRDS(file.path(P_IN, "data_cleaned.rds")); setDT(data)
-stopifnot(TARGET %in% names(data))
+panel_dates <- data$date
+head_mean <- mean(data$CPIAUCSL); head_sd <- sd(data$CPIAUCSL)   # for the comparison print
 
-# data_cleaned multiplies CPIAUCSL by 100 (see 02_Data_Cleaning.R); the core
-# series still carry the raw log-difference, so scale it the same way.
-data[, CPIAUCSL := NULL]
-data[, CPIAUCSL := get(TARGET) * 100]
-data[, (TARGET) := NULL]
-saveRDS(data, file.path(P_IN, paste0("data_cleaned_", TARGET, ".rds")))
+core_aligned <- core[data, on = "date"]$target        # match panel row for row
+n_missing <- sum(is.na(core_aligned))
+if (n_missing > 0)
+  stop(sprintf("%d panel months have no %s observation (range %s..%s). Extend the download.",
+               n_missing, CORE_SERIES, format(min(panel_dates)), format(max(panel_dates))))
 
-cat(sprintf("Target swapped to %s. Now run, in order:\n", TARGET))
-cat("  10_Benchmarks.R  15_Penalised.R  18_RandomForest.R  20_LLF.R\n")
-cat("  50_Assemble_Predictions.R  52_RMSE_Tables_Charts.R  60_Forecast_Tests.R  61_Ensemble_Recursive.R\n")
-cat(sprintf("after pointing them at 02_Input/data_cleaned_%s.rds\n", TARGET))
+data[, CPIAUCSL := core_aligned]                       # swap target, keep predictors
+out <- file.path(P_IN, sprintf("data_cleaned_%s.rds", CORE_SERIES))
+saveRDS(data, out)
+
+## 4. report ----------------------------------------------------------------
+cat(sprintf("Wrote %s\n", out))
+cat(sprintf("Target = %s, %d months, %s .. %s\n",
+            CORE_SERIES, nrow(data), format(min(panel_dates)), format(max(panel_dates))))
+cat(sprintf("pi mean = %.3f, sd = %.3f  (headline for comparison: mean %.3f, sd %.3f)\n",
+            mean(data$CPIAUCSL), sd(data$CPIAUCSL), head_mean, head_sd))
+cat(sprintf("\nNext: set TARGET <- \"%s\" in 00_Config.R, then re-run 10 -> 61.\n", CORE_SERIES))

@@ -83,19 +83,38 @@ HP <- list(
   llf_mtry     = 52
 )
 
+## ---- Forecast target --------------------------------------------------------
+# "" (empty) = headline CPI, the baseline (reads 02_Input/data_cleaned.rds).
+# Set to a core series to run the robustness exercise on it (paper TODO 3):
+#   "CPILFESL" = core CPI (CPI less food and energy)
+#   "PCEPILFE" = core PCE
+# Prepare the alternative target once with 70_Robustness_CoreCPI.R, then set
+# TARGET here and re-run 10 -> 61. Nothing else changes: every input, forecast
+# file, figure and table below is routed automatically by TARGET, so a core run
+# never overwrites the headline results.
+TARGET <- ""
+
 ## ---- Paths ------------------------------------------------------------------
 # Figures and tables are written STRAIGHT into the LaTeX folder, under the exact
 # names main.tex expects, so nothing has to be copied by hand.
 P_IN    <- "02_Input"
 P_OUT   <- "03_Output"
-P_PRED  <- file.path(P_OUT, "Preds")
-P_PAPER <- file.path(P_OUT, "Paper")      # csv side-outputs only
-F_DESC  <- "06_Latex/Figures/Descriptives"
-F_RMSE  <- "06_Latex/Figures/RMSE"
-F_VAR   <- "06_Latex/Figures/Var_Imp"
-F_ROB   <- "06_Latex/Figures/Robustness"
-F_ROOT  <- "06_Latex/Figures"
-T_DIR   <- "06_Latex/Tables"
+
+# Which cleaned panel the model scripts read
+DATA_FILE <- if (nzchar(TARGET)) sprintf("data_cleaned_%s.rds", TARGET) else "data_cleaned.rds"
+
+# For a core-target run, everything lands in a target-specific subfolder;
+# for the baseline (TARGET = "") the paths are exactly as before.
+.sub    <- if (nzchar(TARGET)) paste0("Robustness_", TARGET) else NULL
+.join   <- function(...) do.call(file.path, as.list(c(..., .sub)))
+P_PRED  <- .join(P_OUT, "Preds")
+P_PAPER <- .join(P_OUT, "Paper")                # csv side-outputs only
+F_ROOT  <- .join("06_Latex/Figures")
+F_DESC  <- file.path(F_ROOT, "Descriptives")
+F_RMSE  <- file.path(F_ROOT, "RMSE")
+F_VAR   <- file.path(F_ROOT, "Var_Imp")
+F_ROB   <- file.path(F_ROOT, "Robustness")
+T_DIR   <- .join("06_Latex/Tables")
 for (p in c(P_OUT, P_PRED, P_PAPER, F_DESC, F_RMSE, F_VAR, F_ROB, T_DIR))
   dir.create(p, showWarnings = FALSE, recursive = TRUE)
 

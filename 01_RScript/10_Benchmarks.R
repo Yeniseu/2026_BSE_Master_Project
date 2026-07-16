@@ -8,7 +8,7 @@
 # ============================================================================
 source("01_RScript/00_Config.R")
 
-data <- readRDS(file.path(P_IN, "data_cleaned.rds")); setDT(data)
+data <- readRDS(file.path(P_IN, DATA_FILE)); setDT(data)
 dates <- data$date
 Y     <- as.matrix(data[, -"date"])
 tcol  <- which(colnames(Y) == "CPIAUCSL")

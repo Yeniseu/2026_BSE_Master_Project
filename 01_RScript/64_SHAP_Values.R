@@ -12,7 +12,7 @@ library(randomForest)
 library(treeshap)
 set.seed(123)
 
-data <- readRDS(file.path(P_IN, "data_cleaned.rds")); setDT(data)
+data <- readRDS(file.path(P_IN, DATA_FILE)); setDT(data)
 data <- data[!is.na(CPIAUCSL)]
 setnames(data, "CPIAUCSL", "inf"); setcolorder(data, c("date", "inf"))
 
