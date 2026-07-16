@@ -49,7 +49,7 @@ STARS <- function(p) if (is.na(p)) "" else if (p < .01) "***" else if (p < .05) 
 for (h in HORIZONS) {
   d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
   d <- d[!is.na(sub)]
-  for (f in names(FAMILIES)) d[[f]] <- rowMeans(d[, FAMILIES[[f]], with = FALSE])
+  for (f in names(FAMILIES)) d[, (f) := rowMeans(.SD), .SDcols = FAMILIES[[f]]]
   d[, regime := ifelse(sub %in% SHOCK_SUBS, "shock", "calm")]
   E <- function(x, c) x[[c]] - x$real
 

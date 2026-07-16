@@ -28,7 +28,7 @@ ENS       <- c("Best 5", "Constr. OLS", "Constr. Ridge")
 for (h in HORIZONS) {
   d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
   X <- as.matrix(d[, ..MODELS]); y <- d$real; k <- length(MODELS)
-  for (e in ENS) d[[e]] <- NA_real_
+  d[, (ENS) := NA_real_]        # pre-allocate ensemble columns by reference
   W <- list()
 
   for (t in (MIN_TRAIN + 1):nrow(d)) {
@@ -120,5 +120,6 @@ for (h in HORIZONS) {
           legend.position = "top", legend.title = element_blank(),
           plot.title    = element_text(hjust = 0.5, face = "bold"),
           plot.subtitle = element_text(hjust = 0.5))
+
   ggsave(file.path(F_RMSE, "RMSE_Chart_3_Months_Ensemble.png"), gg, width = 7, height = 5)
 }
