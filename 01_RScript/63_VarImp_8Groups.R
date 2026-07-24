@@ -10,7 +10,7 @@
 # principal components are dropped, and CPI is folded into Prices (its FRED-MD
 # group), so the eight plotted lines are re-normalised to 100% in every window.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(ggplot2)
 library(scales)
 

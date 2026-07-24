@@ -7,7 +7,7 @@
 # Input : 03_Output/Preds/shap_h3_w*.rds (from 64_SHAP_Values.R)
 # Output: Figures/Var_Imp/rotation_shap_relative.png
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
 obj   <- readRDS(file.path(P_PRED, paste0("shap_h3", WTAG, ".rds")))

@@ -6,7 +6,7 @@
 #   (2) Rolling mean: the training set ran to t-1 regardless of h, i.e. a
 #       2-month look-ahead at h=3. It now stops at t-h, so h=1 and h=3 differ.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 
 data <- readRDS(file.path(P_IN, DATA_FILE)); setDT(data)
 dates <- data$date

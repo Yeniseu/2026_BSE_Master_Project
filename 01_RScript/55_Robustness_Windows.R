@@ -3,13 +3,13 @@
 # Averages the sub-period RMSE across every training-window length that has
 # been run, at both horizons, and plots the result.
 #
-# To produce the inputs, set TRAIN_WINDOW in 00_Config.R to each of 240, 360,
+# To produce the inputs, set TRAIN_WINDOW in 00_2_Config.R to each of 240, 360,
 # 480 (and the 492 baseline) and re-run 10 / 15 / 18 / 20 / 50 each time. This
 # script then picks up whatever preds_h*_w*.rds files exist.
 #
 # Writes Figures/Robustness/RMSE_Average_Chart.png.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
 files <- list.files(P_PRED, pattern = "^preds_h[13]_w[0-9]+\\.rds$", full.names = TRUE)
@@ -43,9 +43,7 @@ gg <- ggplot(pl, aes(sub, RMSE, group = Model, colour = Model)) +
            fill = "darkgrey", alpha = 0.2) +
   geom_line(linewidth = 1) + geom_point(size = 2) +
   scale_colour_manual(values = MODEL_COLORS) +
-  labs(title = "Out-of-sample RMSE",
-       subtitle = sprintf("Average of %d specifications", length(files)),
-       x = NULL, y = "RMSE") +
+  labs(x = NULL, y = "RMSE") +
   theme_minimal() +
   theme(axis.text.x    = element_text(angle = 90, hjust = 1),
         legend.position = "top", legend.title = element_blank(),

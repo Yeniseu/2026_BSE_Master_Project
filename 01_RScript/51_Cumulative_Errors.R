@@ -3,7 +3,7 @@
 # Cumulative absolute forecast error, one representative model per family plus
 # the two time-series benchmarks. Writes Figures/cum_err_all_step3_models2.png.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
 # one representative model per family, plus the benchmarks

@@ -5,9 +5,9 @@
 #
 # Also stores the per-window permutation importance of the full-panel h=3 run,
 # which 63_VarImp_8Groups.R turns into the variable-importance figure.
-# mtry comes from HP in 00_Config.R; the grid search is NOT re-run.
+# mtry comes from HP in 00_2_Config.R; the grid search is NOT re-run.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 source("01_RScript/00_Functions_Design.R")
 library(randomForest)
 set.seed(123)
@@ -22,19 +22,21 @@ dum   <- make_dummies(dates)
 
 imp_store <- NULL   # filled by the full-panel h=3 run
 
-run_rf <- function(vars, nm) {
+run_rf <- function(vars, nm, set) {
   Y <- as.matrix(data[, .SD, .SDcols = c("inf", vars)])
   Y <- Y[, colSums(is.na(Y)) == 0, drop = FALSE]
   out <- list()
 
   for (h in HORIZONS) {
+    hp <- get_hp(set, h)                       # case-specific hyper-parameters
     # importance is only needed for the figure, i.e. the full panel at h = 3
     keep_imp <- SAVE_IMPORTANCE && nm == "RF" && h == 3
     imp <- list()
 
     fit <- function(des) {
       m <- randomForest(des$X, des$y,
-                        mtry       = min(HP$rf_mtry, ncol(des$X)),
+                        mtry       = min(hp$rf_mtry, ncol(des$X)),
+                        ntree      = OPT$rf_ntree,
                         importance = keep_imp)
       if (keep_imp) imp[[length(imp) + 1L]] <<- importance(m)[, 1]   # %IncMSE
       as.numeric(predict(m, matrix(des$X.out, nrow = 1,
@@ -50,8 +52,8 @@ run_rf <- function(vars, nm) {
   out
 }
 
-full  <- run_rf(setdiff(names(data), c("date", "inf")), "RF")
-labor <- run_rf(intersect(LABOR_VARS, names(data)), "RF_P")
+full  <- run_rf(setdiff(names(data), c("date", "inf")), "RF",   "full")
+labor <- run_rf(intersect(LABOR_VARS, names(data)),      "RF_P", "labor")
 
 preds <- list()
 for (h in HORIZONS) {

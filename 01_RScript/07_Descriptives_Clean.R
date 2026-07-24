@@ -6,7 +6,7 @@
 # Scope : Figures 1-2 and the regime-level descriptive statistics table.
 #
 # Inputs : 02_Input/data_cleaned.rds   (stationary panel)
-#          02_Input/2026-01-MD.csv     (raw vintage, for LEVELS of UNRATE, HWIURATIO)
+#          VINTAGE_CSV (00_2_Config.R)   (raw vintage, for LEVELS of UNRATE, HWIURATIO)
 # Outputs: 06_Latex/Figures/Descriptives/
 #            fig1_inflation_unemp_panel.pdf     (pi, v/u, 36m rolling corr)
 #            fig2_phillips_scatter_2charts.pdf  (used in the paper)
@@ -18,7 +18,7 @@
 # as first differences; for the descriptives we want LEVELS, so they are re-read
 # from the raw csv. Display choice only -- the models use the stationary series.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 
 
 # ---- 0. Packages ----------------------------------------------------------
@@ -121,8 +121,8 @@ class(data_cleaned) <- "data.frame"
 DT <- as.data.table(data_cleaned)
 DT <- DT[, .(date, CPIAUCSL)]
 
-raw <- fread("02_Input/2026-01-MD.csv", skip = 2, header = FALSE)
-hdr <- names(fread("02_Input/2026-01-MD.csv", nrows = 0))
+raw <- fread(VINTAGE_CSV, skip = 2, header = FALSE)
+hdr <- names(fread(VINTAGE_CSV, nrows = 0))
 setnames(raw, hdr)
 setnames(raw, "sasdate", "date")
 raw[, date := as.Date(date, format = "%m/%d/%Y")]

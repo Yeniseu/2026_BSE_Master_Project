@@ -6,7 +6,7 @@
 # Everything downstream (52, 55, 60, 61) reads only these files, so the paper's
 # tables and figures regenerate automatically after any model is re-run.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 
 bm <- readRDS(file.path(P_PRED, paste0("benchmarks", WTAG, ".rds")))
 pn <- readRDS(file.path(P_PRED, paste0("penalised",  WTAG, ".rds")))

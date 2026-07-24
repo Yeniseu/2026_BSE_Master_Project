@@ -9,11 +9,11 @@
 #     and treated it as a crisis dummy: it was dropped from the PCA and the lag
 #     structure, entered contemporaneously, and was forced to 0 at prediction
 #     time. That was a leftover from the Medeiros replication code. Dummies are
-#     now explicit and controlled by USE_DUMMIES in 00_Config.R.
+#     now explicit and controlled by USE_DUMMIES in 00_2_Config.R.
 #   * single forecasting sample (no 2015 split).
-# Hyper-parameter tuning is NOT re-run here; values come from HP in 00_Config.R.
+# Hyper-parameter tuning is NOT re-run here; values come from HP in 00_2_Config.R.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 source("01_RScript/00_Functions_Design.R")
 library(glmnet)
 
@@ -26,17 +26,17 @@ dates <- data$date
 nprev <- sum(dates >= OOS_START)
 dum   <- make_dummies(dates)              # NULL unless USE_DUMMIES
 
-SPECS <- list(
-  La = list(alpha = 1,               lambda = HP$lasso_lambda),
-  Ri = list(alpha = 0,               lambda = HP$ridge_lambda),
-  EN = list(alpha = HP$elnet_alpha,  lambda = HP$elnet_lambda)
-)
-
-run_set <- function(vars, suffix) {
+run_set <- function(vars, suffix, set) {
   Y <- as.matrix(data[, .SD, .SDcols = c("inf", vars)])
   Y <- Y[, colSums(is.na(Y)) == 0, drop = FALSE]
   out <- list()
   for (h in HORIZONS) {
+    hp <- get_hp(set, h)                       # case-specific hyper-parameters
+    SPECS <- list(
+      La = list(alpha = 1,              lambda = hp$lasso_lambda),
+      Ri = list(alpha = 0,              lambda = hp$ridge_lambda),
+      EN = list(alpha = hp$elnet_alpha, lambda = hp$elnet_lambda)
+    )
     for (nm in names(SPECS)) {
       s <- SPECS[[nm]]
       fit <- function(des) {
@@ -53,8 +53,8 @@ run_set <- function(vars, suffix) {
   out
 }
 
-full  <- run_set(setdiff(names(data), c("date", "inf")), "")
-labor <- run_set(intersect(LABOR_VARS, names(data)), "_P")
+full  <- run_set(setdiff(names(data), c("date", "inf")), "",   "full")
+labor <- run_set(intersect(LABOR_VARS, names(data)),      "_P", "labor")
 
 preds <- list()
 for (h in HORIZONS) {

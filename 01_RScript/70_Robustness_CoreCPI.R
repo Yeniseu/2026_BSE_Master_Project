@@ -15,7 +15,7 @@
 #   4. saves 02_Input/data_cleaned_<SERIES>.rds.
 #
 # Then, to produce the robustness results:
-#   * set  TARGET <- "<SERIES>"  in 00_Config.R   (e.g. "CPILFESL")
+#   * set  TARGET <- "<SERIES>"  in 00_2_Config.R   (e.g. "CPILFESL")
 #   * re-run 10 -> 15 -> 18 -> 20 -> 50 -> 52 -> 60 -> 61
 #   Everything routes into 03_Output/.../Robustness_<SERIES> and
 #   06_Latex/Figures/Robustness_<SERIES>, so the headline results are untouched.
@@ -28,7 +28,7 @@ CORE_FILE   <- "02_Input/Core_Inf_CPILFESL.xlsx"       # raw index levels
 CORE_SHEET  <- "Monthly"
 # ---------------------------------------------------------------------------
 
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(readxl)
 
 ## 1. raw core index --------------------------------------------------------
@@ -62,4 +62,4 @@ cat(sprintf("Target = %s, %d months, %s .. %s\n",
             CORE_SERIES, nrow(data), format(min(panel_dates)), format(max(panel_dates))))
 cat(sprintf("pi mean = %.3f, sd = %.3f  (headline for comparison: mean %.3f, sd %.3f)\n",
             mean(data$CPIAUCSL), sd(data$CPIAUCSL), head_mean, head_sd))
-cat(sprintf("\nNext: set TARGET <- \"%s\" in 00_Config.R, then re-run 10 -> 61.\n", CORE_SERIES))
+cat(sprintf("\nNext: set TARGET <- \"%s\" in 00_2_Config.R, then re-run 10 -> 61.\n", CORE_SERIES))

@@ -6,7 +6,7 @@
 # SHAP values explain the forecasts stored in preds_h3_w*.rds.
 # Output: 03_Output/Preds/shap_h3_w*.rds -> used by 65_Rotation_SHAP.R
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 source("01_RScript/00_Functions_Design.R")
 library(randomForest)
 library(treeshap)
@@ -43,7 +43,9 @@ for (i in nprev:1) {
   des <- make_design(Y[idx_start:idx_end, , drop = FALSE],
                      indice = 1, h = h, nlag = N_LAG, kfac = K_FAC, dum = Dw)
 
-  m <- randomForest(des$X, des$y, mtry = min(HP$rf_mtry, ncol(des$X)))
+  hp <- get_hp("full", h)
+  m <- randomForest(des$X, des$y, mtry = min(hp$rf_mtry, ncol(des$X)),
+                    ntree = OPT$rf_ntree)
   save_pred[j] <- as.numeric(predict(m, matrix(des$X.out, nrow = 1,
                               dimnames = list(NULL, names(des$X.out)))))
 

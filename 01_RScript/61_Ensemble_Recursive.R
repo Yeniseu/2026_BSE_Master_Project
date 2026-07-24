@@ -17,7 +17,7 @@
 # Writes the ensemble weights table, the appendix table of individual models,
 # and Figures/RMSE/RMSE_Chart_3_Months_Ensemble.png.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(quadprog)
 library(ggplot2)
 
@@ -113,8 +113,7 @@ for (h in HORIZONS) {
              fill = "darkgrey", alpha = 0.2) +
     geom_line(linewidth = 1) + geom_point(size = 2) +
     scale_colour_manual(values = MODEL_COLORS) +
-    labs(title = "Out-of-sample RMSE with recursive ensembles",
-         subtitle = "3-month horizon", x = NULL, y = "RMSE") +
+    labs(x = NULL, y = "RMSE") +
     theme_minimal() +
     theme(axis.text.x    = element_text(angle = 90, hjust = 1),
           legend.position = "top", legend.title = element_blank(),

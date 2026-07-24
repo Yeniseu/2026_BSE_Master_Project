@@ -11,11 +11,11 @@ data_transformed <- readRDS("02_Input/data_transformed.rds")
 
 # data_transformed has 800 obs and 127 variables
 
-# Keep the sample range defined in 00_Config.R.
+# Keep the sample range defined in 00_2_Config.R.
 # NOTE: this used to be hard-coded to 2024-12-31, which silently discarded the
-# whole of 2025 even though the raw FRED-MD vintage (2026-01-MD.csv) runs to
-# 2025-12. Set SAMPLE_END in 00_Config.R to extend the sample.
-source("01_RScript/00_Config.R")
+# whole of 2025 even though the raw vintage runs further. SAMPLE_END now sits at
+# 2025-12. Set SAMPLE_END in 00_2_Config.R to extend the sample.
+source("01_RScript/00_2_Config.R")
 
 keep <- data_transformed$date >= SAMPLE_START
 if (!is.na(SAMPLE_END)) keep <- keep & data_transformed$date <= SAMPLE_END

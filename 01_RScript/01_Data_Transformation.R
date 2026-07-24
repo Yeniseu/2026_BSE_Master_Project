@@ -5,12 +5,14 @@
 
 
 library(dplyr)
-library(readr)  
+library(readr)
+
+source("01_RScript/00_2_Config.R")   # provides VINTAGE_CSV
 
 # ============================================
 # 1. LOAD DATA
 # ============================================
-file <- "02_Input/2026-01-MD.csv"
+file <- VINTAGE_CSV
 
 # define the fredmd function 
 fredmd <- function(file = "", date_start = NULL, date_end = NULL, transform = TRUE) {

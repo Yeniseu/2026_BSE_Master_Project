@@ -8,7 +8,7 @@
 #
 # Writes Figures/RMSE/RMSE_Chart_{1,3}_Months.png straight into 06_Latex.
 # ============================================================================
-source("01_RScript/00_Config.R")
+source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
 for (h in HORIZONS) {
@@ -40,8 +40,7 @@ for (h in HORIZONS) {
     annotate("text", x = "2020-2022", y = Inf, label = "COVID", vjust = 1.5, size = 3) +
     geom_line(linewidth = 1) + geom_point(size = 2) +
     scale_colour_manual(values = MODEL_COLORS) +
-    labs(title = "Out-of-sample RMSE", subtitle = paste0(h, "-month horizon"),
-         x = NULL, y = "RMSE") +
+    labs(x = NULL, y = "RMSE") +
     theme_minimal() +
     theme(axis.text.x    = element_text(angle = 90, hjust = 1),
           legend.position = "top", legend.title = element_blank(),
