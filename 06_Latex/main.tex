@@ -1,0 +1,369 @@
+\documentclass[12pt,a4paper]{article}
+
+% ==================== PACKAGES ====================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{appendix}
+\usepackage{url}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage[table]{xcolor}
+\usepackage{makecell}
+\usepackage{pdflscape}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+
+% ==================== PAGE LAYOUT ====================
+\geometry{
+    a4paper,
+    left=2.7cm,
+    right=2.7cm,
+    top=2.7cm,
+    bottom=2.7cm
+}
+
+% ==================== HYPERLINKS ====================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    citecolor=blue,
+}
+
+% ==================== SPACING ====================
+\onehalfspacing
+\setlength{\parskip}{0.4\baselineskip}
+\setlength{\parindent}{0pt}
+
+% ==================== TODO NOTES (remove before submission) ====================
+\newcommand{\todonote}[1]{\par\noindent{\color{red}\textbf{[#1]}}\par}
+
+% Landscape page style for wide appendix tables
+\fancypagestyle{lscape}{%
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \fancyfoot[C]{%
+        \tikz[remember picture,overlay]
+        \node[rotate=90] at ([xshift=-0.5in]current page.east) {\thepage};
+    }
+}
+
+% ==================== TITLE ====================
+\title{The State-Dependent Phillips Curve:\\ Evidence from Machine Learning\thanks{We thank our supervisors, Joan Monr\`as and Rodrigo Carril, for their guidance and comments. This paper grew out of a Master's project at the Barcelona School of Economics. All remaining errors are our own.}}
+
+\author{Ece Ta\c{s}an \"Ozel \quad Emilia Infante \quad Orhun \"Ozel\\
+Marta Bratkowska \quad Zeynep Pehlivan\\[1ex]}
+
+% ==================== DOCUMENT ====================
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent The inflation dynamics of the Global Financial Crisis and the post-COVID surge exposed fundamental weaknesses in linear Phillips Curve forecasting, which failed to anticipate either episode. If the inflation--slack relationship is state-dependent, a linear specification should underperform a flexible alternative precisely in these shock periods. We test this hypothesis by using Machine Learning methods as a diagnostic tool, treating regime-specific forecast performance gains as empirical evidence of non-linear, state-dependent inflation dynamics. Flexible models outperform the linear benchmark during the two shock windows but show no comparable advantage in calm years. We then decompose the gain along its two sources -- non-linearity and variable selection -- through a $2\times2$ model-space design. Both margins contribute, but their relative weight rotates across episodes: non-linearity accounts for most of the gain around the Global Financial Crisis, while both margins contribute during the post-COVID surge. A variable-importance analysis reveals that the dominant inflation drivers also rotate across regimes. The evidence rejects a stable linear Phillips Curve in favour of a state-dependent approach in which both the predictors and their mapping into inflation change with the nature of the shock.
+\end{abstract}
+
+\vspace{0.5em}
+\noindent\textbf{Keywords:} Phillips Curve, Machine Learning, Inflation Forecasting, Non-linearities.
+
+\noindent\textbf{JEL codes:} C45, C53, E31, E37.
+
+% ==================== INTRODUCTION ====================
+\newpage
+\section{Introduction}
+\label{sec:introduction}
+
+The inflation surge of 2021--2023 exposed a fundamental weakness in modern macroeconomic forecasting. After decades of relying on linear Phillips Curve models that assumed a stable, constant relationship between labour market slack and inflation, central banks watched as inflation accelerated to levels unseen in forty years, despite their models predicting otherwise.
+
+The last two decades produced two puzzles that linear Phillips Curve models cannot jointly explain. During the Great Recession, they predicted a sustained deflation that never came \citep{ball2011,coibion2015}. In the aftermath of COVID, inflation rose unexpectedly and far beyond what the same models implied: they predicted a modest pickup, and inflation reached nearly 9\%. Two failures in opposite directions are hard to reconcile with a stable linear slope. The natural reading is that the slack--inflation relationship depends on the state of the economy, and a linear model averages those states together. This is essentially the problem \citet{lucas1976} warned about: the coefficients of empirical macro relationships are not fixed laws of nature but summaries of how people and firms behave given the environment they are in. A Phillips Curve slope estimated during calm years is informative about those years; it is not a reliable guide to a period dominated by supply shocks or a sudden tightening cycle. This motivates an empirical strategy that does not assume a stable slope to begin with. Machine Learning models, which impose no fixed functional form, are well suited to that task. They allow the relationship between slack and inflation to change across different states of the economy rather than forcing a single slope on the whole sample.
+
+The recent literature contains three broad responses to these puzzles, each proposing a different diagnosis of what the linear Phillips Curve is missing.
+
+\subsection{The First Camp: Stable Slope}
+\label{subsec:camp1}
+
+The first camp maintains that the structural slope is stable and that apparent shifts reflect factors outside the curve itself. \citet{bernanke2023} argue that a simple linear specification with the vacancy-to-unemployment ratio is sufficient to fit post-pandemic inflation, once the rotation of underlying shocks is accounted for. In their account, supply pressures dominated in 2020--21 and labour-market tightness in 2022--23, and they report no statistical evidence of non-linearity. \citet{jorgensen2025} offer a complementary account. They argue that the reduced-form flattening of recent decades is an artefact of improved anchoring of inflation expectations, and that once the anchoring regime is controlled for, the structural slope of the New Keynesian Phillips Curve is stable from the 1960s onward. Both accounts share a methodological commitment that the functional form of the curve itself need not be modified. What needs to be modelled is instead shock composition or the expectations process.
+
+\subsection{The Second Camp: Fixed Non-Linear Functional Form}
+\label{subsec:camp2}
+
+A second camp argues that the linear specification is genuinely misspecified and that the slack--inflation relationship has a stable but non-linear shape. The sharp-kink version is most cleanly articulated by \citet{benigno2023}, who derive an inverse-L Phillips Curve. The curve is flat when labour-market tightness is below the threshold $v/u = 1$ and steepens sharply above it. \citet{harding2022} reach a similar shape through a different mechanism, a quasi-kinked demand schedule for goods, which produces a curve that is flat when inflationary pressures are subdued and steepens as they rise; in a post-COVID extension of the same framework, the steep region also generates strong pass-through of cost-push shocks once inflation is already high \citep{harding2023post}. In their case the kink sits in inflation space rather than slack space. \citet{forbes2022} find a related ``low-inflation bend'' in cross-country data, where the curve flattens when inflation is low and slack is positive. \citet{ball2022} find that squared and cubic terms in the vacancy-to-unemployment ratio are statistically significant, producing a smooth convexity rather than a sharp break, and \citet{gitti2024} finds consistent evidence of steepening in tight labour markets using regional data for US metropolitan areas. Despite the disagreement about shape, these contributions share an empirical strategy of estimating a single fixed non-linear function over the whole sample.
+
+\subsection{The Third Camp: State-Dependent Inflation Drivers}
+\label{subsec:camp3}
+
+A third camp goes further, arguing that the determinants of inflation themselves rotate with the state of the economy. \citet{cbo2023} show that the sensitivity of inflation to demand depends on supply conditions and on slack, with an explicit interaction between the two. Supply disruptions alone, and tight labour markets alone, each amplify the inflationary effect of demand, and their interaction amplifies it further. On this reading, 2020--22 was a period in which both constraints bound simultaneously, a configuration that a single-variable non-linearity cannot capture. \citet{coulombe2024} reaches a related conclusion using a random-forest-based time-series model that recovers generalised time-varying parameters. He finds that the strength of the unemployment--inflation relationship varies strongly over the business cycle rather than holding fixed. An earlier forecasting antecedent points the same way: \citet{dotsey2018} show that the usefulness of Phillips Curve forecasts is itself state-dependent, with activity variables helping in weak economies and adding little, or even hurting, in normal times.
+
+\subsection{Research Question and Contribution}
+\label{subsec:synthesis}
+This paper asks whether flexible Machine Learning models outperform linear Phillips Curve specifications specifically during large shock periods, and whether the resulting forecast gap can be read as evidence for a state-dependent inflation process. Our hypothesis is that the linear Phillips Curve fails during shocks because the underlying relationship is state-dependent along two margins. The functional form itself becomes non-linear at the extremes, and the hierarchy of determinants rotates with the nature of the shock. ML models should therefore outperform linear benchmarks precisely in the periods where the linear model fails, and should perform similarly to the linear benchmark in tranquil periods where the linear approximation suffices. Our contribution is threefold. First, we use ML methods as an agnostic diagnostic tool to test for state-dependence without imposing a specific functional form ex ante. Second, we disentangle the contributions of non-linearity and variable selection to forecast performance through a $2\times2$ model-space design. Third, a variable-importance analysis shows how the active set of inflation drivers rotates across states, precisely the kind of parameter instability the Lucas critique anticipates, and which a fixed linear model cannot capture.
+
+Our diagnostic use of forecast comparisons connects this debate to the inflation-forecasting literature, which has long documented the difficulty of beating simple univariate benchmarks \citep{atkesonohanian2001,stockwatson2007} and the mixed record of activity-based specifications \citep{stockwatson1999,faust2013}, and which has more recently established that Machine Learning methods deliver sizeable gains for US inflation in data-rich environments \citep{medeiros2021veiga,hauzenberger2023}. Closest to our exercise, \citet{coulombe2022ml} decompose the sources of ML gains across a broad set of macroeconomic targets into four algorithmic features -- non-linearity, regularisation, hyperparameter selection and the loss function -- and conclude that non-linearity is the decisive ingredient, with gains concentrated in periods of high macroeconomic uncertainty and financial stress. Our decomposition is complementary but runs along different margins. Instead of dissecting the ML toolkit, we hold it fixed and vary two economically interpretable dimensions of a Phillips Curve -- its functional form and its information set -- the margins that map directly into the misspecification debate above. And rather than measuring average gains over a long sample, we condition on named shock episodes and show that the relative importance of these two margins itself rotates across shocks: variable selection contributes most in the supply-driven COVID episode, while non-linearity does the work in the GFC.
+
+The remainder of the paper is organised as follows. Section~\ref{sec:theory} sketches the theoretical mechanisms that generate Phillips Curve non-linearity and groups the relevant FRED-MD variables accordingly. Section~\ref{sec:data} describes the dataset and presents descriptive evidence. Section~\ref{sec:methodology} sets out the empirical strategy, the four model families and the ensemble combinations. Section~\ref{sec:results} reports the main forecasting results, the ensemble exercise, the variable-importance analysis and robustness checks. Section~\ref{sec:conclusion} concludes.
+
+% ==================== THEORETICAL MECHANISMS ====================
+\FloatBarrier
+\section{Theoretical Mechanisms for Non-Linearity}
+\label{sec:theory}
+
+This section sketches the theoretical mechanisms that can generate Phillips Curve non-linearity and state-dependence, and maps each mechanism to a group of variables in the FRED-MD panel. These mechanisms motivate why a flexible empirical specification, rather than a global linear one, can be better suited to forecasting inflation across regimes. The three mechanisms have implications for which variables should be informative in which episode, and Section~\ref{subsec:var_imp} returns to this discussion when interpreting the predictive models' variable-importance results.
+
+\subsection{Tight Labour Market Non-Linearity}
+\label{subsec:theory_labor}
+
+A first mechanism comes from search-and-matching frictions. \citet{michaillat2024} characterise labour-market efficiency at $v/u = 1$, so the labour market becomes inefficiently tight as $v/u$ rises above one and firms compete aggressively for scarce workers. \citet{benigno2023} embed this in a New Keynesian model with wage rigidity ``in the spirit of \citet{phillips1958}'': wage cuts are limited in slack markets because workers refuse jobs paying meaningfully below the prevailing wage, while wages move freely in tight markets where firms compete for scarce workers. The resulting ``Inverted-L'' Phillips Curve is flat below $v/u = 1$ and steep above it. \citet{harding2022} reach a related state-dependent shape from a different microfoundation, using a New Keynesian model with Kimball quasi-kinked demand at the firm level to deliver a Phillips Curve that is flat in deep recessions and steeper in booms, resolving the missing-deflation puzzle of the Great Recession. \citet{gitti2024} provides direct empirical support using US regional data, finding that the slope steepens substantially once local labour markets cross their tightness benchmarks. Variables in this group: the vacancy-to-unemployment proxy, the unemployment rate, short-term unemployment, initial claims and labour-force participation.
+
+\subsection{Supply-Chain Disruptions and Production Networks}
+\label{subsec:theory_supply}
+
+A second mechanism operates through the propagation of sectoral disturbances. \citet{baqaee2022} show that in a disaggregated economy with input-output linkages and downward nominal wage rigidities, low input substitutability redirects expenditure toward shocked sectors and amplifies Keynesian unemployment in unshocked sectors, producing supply-constrained sectors with rising prices alongside demand-constrained sectors with falling ones. \citet{guerrieri2022} formalise a complementary channel -- a ``Keynesian supply shock'' -- in which a sectoral supply shock reduces incomes and depresses demand in unaffected sectors, pushing aggregate output below potential. Both mechanisms generate heterogeneous, regime-dependent sectoral dynamics that an aggregate linear Phillips Curve cannot represent. Variables in this group: oil, producer prices, crude materials, metals, and industrial production for materials and intermediate goods.
+
+\subsection{Inflation Expectations and Anchoring}
+\label{subsec:theory_other}
+
+\citet{hazell2022} use newly constructed state-level price indices to argue that the apparent flatness of the post-1990 aggregate Phillips Curve is largely explained by the anchoring of long-run inflation expectations rather than by a structural change in the slope, so that the underlying state-level slope is small but stable. \citet{bernanke2023} reach a complementary conclusion for the pandemic episode: the 2021--22 inflation surge was driven mainly by goods-market shocks -- commodity prices and sectoral supply disruptions -- with medium-term expectations rising modestly but not de-anchoring. Relevant variables include consumer sentiment and survey-based inflation expectations where available.
+
+% ==================== DATA AND DESCRIPTIVES ====================
+\FloatBarrier
+\section{Data and Descriptive Statistics}
+\label{sec:data}
+
+We work with the FRED-MD dataset (January 2026 version), a monthly macroeconomic panel maintained by the Federal Reserve Bank of St.\ Louis that bundles a wide range of standardised US series covering output, labour, prices, housing, money and credit, interest rates and exchange rates, and survey indicators \citep{mccracken2016fredmd}. After trimming to 1960:M1--2024:M12, the working sample contains 780 observations on 127 series. The empirical forecasting exercise focuses on the 2001:M1--2024:M12 evaluation window, which encompasses the GFC (2008--2009) and the COVID surge (2020--2022).
+
+Following \citet{mccracken2016fredmd}, the FRED-MD series are organised into eight thematic groups that we use later (Section~\ref{subsec:var_imp}) to aggregate variable importance: (i) \emph{output and income} (industrial production, real personal income; 16 series); (ii) \emph{labour market} (employment, hours, unemployment, claims, wages; 31 series); (iii) \emph{housing} (starts, permits, prices; 10 series); (iv) \emph{consumption, orders and inventories} (real consumption, durable-goods orders, business inventories; 10 series); (v) \emph{money and credit} (monetary aggregates, consumer and business credit; 13 series); (vi) \emph{interest and exchange rates} (Treasury and Fed Funds rates, term spreads, bilateral exchange rates; 22 series); (vii) \emph{prices} (producer prices, consumer prices, oil; 20 series); and (viii) \emph{stock market} (S\&P 500, dividend yield, market volatility; 4 series).
+
+We apply publication-recommended transformation codes (mostly log first differences for prices and quantities, levels for rates and ratios) to achieve stationarity, following \citet{mccracken2016fredmd}. The only exception is the headline price indices (consumer prices, producer prices, oil and the personal-consumption-expenditures deflators), which are log-differenced once rather than twice, so that the target $\pi_t = 100 \cdot \Delta \log \mathrm{CPI}_t$ is monthly headline CPI inflation in percent \citep{medeiros2021veiga}. Missing observations, which are concentrated in survey and credit series, are filled with an EM/PCA imputation following \citet{stockwatson2002}, using five factors estimated on the standardised panel and iterating until convergence. No series is dropped.
+
+We use monthly CPI inflation ($\pi_t$) as our target indicator, calculated by log-differencing the headline CPI series in percent. Figure~\ref{fig:infl_panel}a shows that over 2002--2024, monthly CPI inflation averages $0.21\%$ with a standard deviation of $0.31$ percentage points. The series is dominated by two clusters of large realisations: the 2008:M11 deflationary trough of $-1.8\%$ and the 2022 surge, when monthly inflation repeatedly registered high values. Inflation volatility is roughly an order of magnitude larger inside the shock windows than in the stable 2010s. These high-value and high-volatility periods have the potential to stress linear models if the underlying relation is in fact non-linear.
+
+Figure~\ref{fig:infl_panel}b plots the vacancy-to-unemployment ratio $v_t/u_t$ in levels (to examine tight vs.\ slack labour markets); $v/u$ is FRED-MD's help-wanted-to-unemployment ratio, which is the convention used by \citet{benigno2023} for their L-shaped specification. It collapses to roughly $0.3$ during the GFC and to around $0.5$ during the COVID drop, then overshoots historical highs of about $2.0$ in 2022 before easing back toward $1.0$ by 2024. Pooling all non-shock-period observations yields a contemporaneous correlation between $\pi_t$ and $v_t/u_t$ of only $0.06$, the descriptive fact behind the missing disinflation/inflation puzzles. Looking into the large shock periods sharpens the picture: the correlation is more positive ($0.13$) in the GFC and strongly positive ($0.44$) in the COVID window. Figure~\ref{fig:infl_panel}c plots the 36-month rolling correlation between $\pi_t$ and the $v/u$ ratio. The correlations take the expected positive values around large shock periods but remain inconclusive in normal periods.
+
+The Phillips Curve has traditionally been inspected through inflation--unemployment scatter plots. Figure~\ref{fig:phillips_scatter} reproduces that diagnostic and splits the sample by regime. In the tranquil years (grey clouds) the curve appears essentially flat, consistent with the ``hibernating'' diagnosis prevalent in the post-2000 literature \citep{hooper2020}. Inside the two shock windows, however, the within-regime slope re-appears with a clearly different shape: steeply positive against $v/u$ in 2020--2022 and visibly distinct from the tranquil cloud during the GFC. Read in the spirit of the regime-dependence literature, this pattern is exactly what a single linear regression averaged across regimes would obscure, and is the visual analogue of the non-linearity our forecasting exercise is designed to detect.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{Figures/Descriptives/fig1_inflation_unemp_panel.pdf}
+  \caption{(a) Monthly US CPI inflation, (b) the vacancy-to-unemployment ratio in levels, and (c) the 36-month rolling Pearson correlation between monthly CPI inflation and the $v/u$ ratio. The dashed line in panel (b) is the $v/u=1$ threshold of \citet{benigno2023}.}
+  \label{fig:infl_panel}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{Figures/Descriptives/fig2_phillips_scatter_2charts.pdf}
+  \caption{Inflation against $v/u$, 2002--2024. Left panel isolates the 2020--2022 COVID window; right panel isolates the 2008--2009 GFC; in both panels, the remaining months are pooled in grey.}
+  \label{fig:phillips_scatter}
+\end{figure}
+
+% ==================== METHODOLOGY ====================
+\FloatBarrier
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Empirical Strategy}
+\label{subsec:strategy}
+
+Our empirical strategy uses rolling-window out-of-sample forecasts as an agnostic diagnostic for state-dependence. If the Phillips Curve is well summarised by a stable linear relationship, then a correctly specified linear model should not be systematically beaten by a more flexible alternative. If instead the inflation process is state-dependent -- either non-linear in slack or with a rotating set of relevant predictors -- then methods that can adapt the functional form and the active variables to local windows of the sample should systematically outperform the linear benchmark, with the largest gains in periods where the regime is furthest from the historical average.
+
+To isolate the two channels of flexibility we stratify the model space along a $2 \times 2$ grid (linearity $\times$ variable selection). The four cells are: (i) \emph{Linear Phillips Curve}, linear with a small Phillips Curve variable set; (ii) \emph{Linear with Variable Selection} (LASSO, Ridge, Elastic Net) on the full 127-variable FRED-MD panel; (iii) \emph{Non-linear Phillips Curve} (Random Forest and Local Linear Forest on the Phillips Curve variable set); and (iv) \emph{Non-linear with Variable Selection} (Random Forest and Local Linear Forest on the full panel). This $2 \times 2$ design allows us to disentangle the contributions of variable selection and non-linearity in a stepwise way. We also construct a statistical benchmark group containing a random walk, a recursive rolling mean and an autoregressive AR(4) model; univariate benchmarks of this kind have proven hard to beat for US inflation \citep{atkesonohanian2001,stockwatson2007}.
+
+\subsection{Model Structures}
+\label{subsec:model_str}
+
+The Phillips Curve specifications in this paper follow the hybrid form standard in the empirical literature \citep{galigertler1999,benigno2023}:
+\begin{equation}
+\pi_t = \alpha + \sum_{i=0}^{3} \rho_{i} \pi_{t-h-i} + \gamma \, \mathbf{slack}_{t-h} + \delta \mathbf{Z}_{t-h} + \varepsilon_t,
+\label{eq:linear_pc}
+\end{equation}
+where $\mathbf{slack}_{t-h}$ is a vector of labour-market indicators including the $v/u$ ratio or the unemployment rate, $\mathbf{Z}_{t-h}$ is a vector of controls (oil, expectations proxies, wages, etc.) and $h \in \{1, 3\}$ is the forecast horizon in months. The autoregressive order is four, and the $\mathbf{slack}_{t-h}$ and $\mathbf{Z}_{t-h}$ matrices also contain lags of the covariates up to the fourth lag. In the benchmark linear Phillips Curve of the $2 \times 2$ design, we implement model (\ref{eq:linear_pc}) by penalised estimation restricted to the labour subset of FRED-MD (producing Las\_P, Rid\_P and ElNe\_P).
+
+LASSO, Ridge and Elastic Net \citep{tibshirani1996,zouhastie2005} apply $\ell_1$, $\ell_2$ and mixed penalties to a linear regression of $\pi_t$ on four lags of every FRED-MD series and the first four principal components of the standardised panel. The penalty $\lambda$ and the mixing parameter $\alpha$ are tuned on a pre-2001 validation sample by minimising rolling-window RMSE on a grid, and are then held fixed in the out-of-sample exercise. Running the same estimators on the labour-only subset yields the Linear Phillips Curve family; running them on the full panel yields the Linear with Variable Selection family.
+
+Random Forest \citep{breiman2001} aggregates bootstrapped regression trees that split on a random subset of predictors at each node; it detects threshold effects and interactions without any prior parametric specification. Local Linear Forest \citep{friedberg2021}, built on the generalised random forest framework of \citet{athey2019grf}, replaces the leaf-level constant by a local linear regression. Both forests are estimated on two predictor sets: the Phillips Curve variable set (the Non-linear Phillips Curve family) and the full FRED-MD panel (the Non-linear with Variable Selection family). Hyper-parameters are tuned on a pre-2001 validation sample.
+
+\subsection{Rolling-Window Design and Ensemble Models}
+\label{subsec:rolling}
+
+All models are evaluated by direct rolling forecasts at $h \in \{1, 3\}$ months over a single evaluation sample, 2001:M1--2024:M12 (288 observations). At every forecast origin the model is re-estimated on a fixed rolling window of the most recent 492 observations (41 years), so that the first forecast, for 2001:M1, is produced from a window spanning 1960--2000. Estimating the whole exercise on one sample with one window length keeps the information set comparable across the entire evaluation period, so that any variation in relative forecast accuracy is attributable to the state of the economy rather than to a change in the design. Every model is a \emph{direct} $h$-step forecast: the target is $\pi_{t}$ and the most recent predictor entering the model is dated $t-h$, so the four families and the benchmarks are compared on an identical information set at each horizon. Performance is reported as RMSE, pooled over all months within eight three-year sub-periods (2002--2024) that isolate the two shock windows.
+
+We also construct three forecast combinations \citep{batesgranger1969,timmermann2006}: an equal-weighted average of the five models with the lowest RMSE on a pre-2011 holdout (``Best 5''), a constrained regression modelling the realised inflation using the model forecasts subject to non-negativity and $\sum_i w_i = 1$ (``Constrained OLS''), and the same regression with an $\ell_2$ penalty ($\lambda=5$) that shrinks weights toward equality (``Constrained Ridge''). Weights are estimated on data that precede the test period.
+
+% ==================== RESULTS ====================
+\FloatBarrier
+\section{Results}
+\label{sec:results}
+
+This section presents the forecasting evidence on non-linearities in the US inflation process. We first document a sharp and regime-specific RMSE gap between the linear Phillips Curve and the flexible model families, and decompose it along the non-linearity and variable-selection margins (Section~\ref{subsec:main_results}).
+
+\subsection{Forecast Performance Across Regimes}
+\label{subsec:main_results}
+
+We begin by comparing the out-of-sample forecast accuracy of the four model families across the eight three-year sub-periods that partition our evaluation window. The aim is to test whether the gap between the linear Phillips Curve and the more flexible specifications is uniform across the sample or whether, as the state-dependence hypothesis predicts, it concentrates in episodes when the inflation regime is far from its historical average. Accuracy is measured by root mean squared error at the three-month horizon, and the four families correspond to the four cells of the $2\times 2$ design introduced in Section~\ref{sec:methodology}.
+
+A first reading of Figure~\ref{fig:rmse_main} confirms that the more flexible non-linear and state-dependent Phillips Curve specifications outperform the linear benchmark on average across the evaluation window. The size of the advantage, however, is highly regime-specific. In the six tranquil sub-periods between 2002 and 2025, the four families perform similarly. The dispersion across families opens up sharply in the two shock windows: the Linear Phillips Curve's RMSE rises to $0.47$ in 2008--2010 and to $0.52$ in 2020--2022, while the Non-Linear with Variable Selection family contains those values at $0.40$ and $0.35$, respectively -- a $15\%$ improvement in the GFC window and $33\%$ in the COVID window relative to the linear benchmark. Appendix~\ref{app:individual} adds an important caveat to this comparison: in the COVID window the linear Phillips Curve family is beaten not only by the flexible families but also by the univariate AR(4) benchmark -- an echo of the classic finding of \citet{atkesonohanian2001} that activity-based specifications can actively hurt out-of-sample accuracy. The relevant yardstick for the flexible families is therefore the best univariate benchmark as well as the linear curve; the Non-Linear with Variable Selection family improves on both in both shock windows.
+
+\subsubsection*{Formal tests of equal predictive accuracy}
+
+The RMSE gaps documented above are economically large, but they need to be confronted with the question of whether they are statistically distinguishable from zero. Table~\ref{tab:dm} reports Diebold--Mariano tests \citep{diebold1995} with the Harvey--Leybourne--Newbold small-sample correction \citep{harvey1997}, treating each family as a single forecast series (the equal-weighted average of its members). We report absolute-error loss: inside the shock windows the squared-error loss differential is dominated by a handful of months -- in the COVID window four months account for roughly $77\%$ of the total absolute loss differential -- so squared loss produces very heavy-tailed differentials and correspondingly low power. Results under squared loss are similar in sign and slightly weaker.
+
+Two things stand out. First, the sign of every statistic in the two shock windows favours the flexible families, consistent with the RMSE ranking. Second, and more importantly, none of the individual three-year shock windows rejects the null of equal predictive accuracy at conventional levels: the GFC and COVID statistics for the headline Non-Linear with Variable Selection versus Linear Phillips Curve comparison are $-1.49$ and $-1.37$, with $p$-values of $0.15$ and $0.18$. Each window contains only 36 monthly observations, and inflation forecast errors in exactly these periods are large and erratic, so the tests have little power precisely where the economic effect is largest. Pooling the two shock windows (72 observations) raises the statistic to $-1.84$ ($p = 0.07$), and over the full evaluation sample the flexible family beats the linear Phillips Curve at the $5\%$ level ($-2.20$) and the AR(4) benchmark at the $1\%$ level ($-2.69$).
+
+\begin{table}[H]
+  \centering
+  \caption{Diebold--Mariano tests with the Harvey--Leybourne--Newbold correction, $h=3$, absolute-error loss. A negative statistic favours the first model. $^{*}$, $^{**}$, $^{***}$ denote significance at the $10\%$, $5\%$ and $1\%$ level.}
+  \label{tab:dm}
+  \fontsize{9}{11}\selectfont
+  \input{Tables/DM_Tests}
+\end{table}
+
+The Giacomini--Rossi fluctuation test \citep{giacominirossi2010}, which tracks the local Diebold--Mariano statistic through a rolling 60-month window and so allows relative performance to vary over time, tells the same story. The statistic is essentially zero through the calm early 2000s, falls to around $-1.2$ across the GFC, returns to zero during the 2010s, and reaches its most negative value ($-2.6$) around the COVID window -- the flexible family's advantage is concentrated exactly where the state-dependence hypothesis predicts. It nevertheless remains inside the $5\%$ band ($\pm 3.18$) throughout, so the fluctuation test does not reject the null of equal accuracy at any point in the sample either.
+
+We therefore read the formal tests as \emph{consistent with, but not by themselves decisive for}, the state-dependence hypothesis. The RMSE gains inside the shock windows are large (15--30\%) and their timing matches the theory, but with 36 observations per window and extremely heavy-tailed loss differentials the evidence falls short of conventional significance, and the honest conclusion is that a single three-year episode is too short to settle the question statistically. What can be said with more confidence is that the flexible families are significantly more accurate than both the linear Phillips Curve and the univariate benchmarks over the sample as a whole.
+
+\todonote{\#TODO (results to be refreshed): the numbers in this subsection, and in Table~\ref{tab:dm}, are computed from the current stored forecasts. They must be regenerated -- by re-running \texttt{60\_Forecast\_Tests.R} -- once the Local Linear Forest is re-estimated with the corrected forecast horizon (see the note in Section~\ref{subsec:robustness}).}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{Figures/RMSE/RMSE_Chart_3_Months.png}
+  \caption{Out-of-sample RMSE by three-year sub-period, $h=3$ months. The four model families are defined in Section~\ref{sec:methodology}.}
+  \label{fig:rmse_main}
+\end{figure}
+
+The $2 \times 2$ design allows us to attribute the gain to its two structural sources by reading off the four cells inside a given sub-period. Looking at the two shock windows together, both the \emph{variable-selection} channel (enlarging the predictor set from the small Phillips Curve subset to the full FRED-MD panel) and the \emph{non-linearity} channel (replacing the linear specification with Random Forest or Local Linear Forest) reduce RMSE on average over the two shock windows, and combining the two channels reduces it further. The relative weight of each channel, however, differs across the two episodes in a way that aligns with the underlying inflation dynamics. In the COVID window, both channels deliver large and comparable gains: variable selection alone offers a $25\%$ improvement, and non-linearity alone offers a $27\%$ improvement. The size of the variable-selection gain in particular is consistent with the fact that the 2020--2022 inflation dynamics were driven to a large extent by supply-side indicators. In the GFC window, by contrast, variable selection performs similarly to the linear models, while non-linearity does most of the work. This case is consistent with a reading in which the standard labour-market predictors remain informative but enter inflation in a kinked, non-linear fashion. The combined Non-Linear with Variable Selection cell attains the lowest RMSE in both windows.
+
+Two implications follow. First, a view in which the linear Phillips Curve fails only for lack of non-linearity (a quadratic or cubic term, as in \citealp{ball2022,gitti2024}) fits the GFC window, where adding non-linearity is the only channel that helps. But this explanation cannot rationalise the COVID window, where simply enlarging the predictor set on a linear backbone also delivers a large improvement. Conversely, an omitted-predictors account \citep{bernanke2023} fits the COVID window reasonably well but is not supported by the GFC, where adding the rest of the FRED-MD panel to the linear specification leaves RMSE unchanged. The data are therefore most consistent with a state-dependent reading in which both the active set of predictors and the functional form change with the nature of the shock. Second, the marginal returns to stacking the two channels are positive but diminishing: the combined family improves on either single-flexibility specification by a further $5$--$10$ percentage points of RMSE, rather than by the full sum of the two single-channel gains. Together with the fact that all models behave similarly in the calm periods, this pattern is the empirical signature of a state-dependent inflation process in which both the relevant variables and their mapping into inflation rotate across regimes.
+
+The final sub-period offers an instructive counterpoint. In 2023--2024 (a 24-month window, since the sample ends in 2024:M12), when inflation drifted back toward target while the labour market cooled only gradually, flexibility no longer pays: the AR(4) benchmark posts the lowest RMSE of the sub-period, no model family improves on it, and the Non-Linear with Variable Selection family -- the best performer inside the shock windows -- falls visibly behind (Appendix~\ref{app:individual}). Once the shock has passed and inflation reverts toward a slowly moving local mean, univariate benchmarks are again hard to beat, and the pattern documented by \citet{atkesonohanian2001} re-emerges. We read this as further evidence of state-dependence rather than as a blanket superiority of flexible methods: the value of non-linearity and of a broad information set is concentrated in the onset and peak of large shocks, not in their unwinding.
+
+\subsection{Ensemble Forecasts}
+\label{subsec:ensemble_results}
+
+No individual model dominates across all sub-periods (Appendix~\ref{app:individual}), so forecast combinations have the potential to reduce model-specific variance in line with the standard logic of \citet{batesgranger1969} and \citet{timmermann2006}. We therefore check whether a combination of models can produce sharper forecasts than any single specification, using three different weighting schemes. The first is a simple equal-weighted average of the five models with the lowest RMSE on a pre-2011 holdout (``Best 5''). The second regresses realised inflation on the model forecasts using OLS with non-negativity and sum-to-one constraints (``Constrained OLS''), which selects a small number of informative models. The third adds a ridge penalty to this constrained regression (``Constrained Ridge''), which shrinks weights toward equality and so loads on a broader set of models.
+
+\begin{table}[H]
+  \centering
+  \caption{Forecast combination weights, averaged over the recursive (expanding-window) re-estimations, $h=3$.}
+  \label{tab:ensemble_weights}
+  \fontsize{8}{10}\selectfont
+  \input{Tables/Ensemble_Weights}
+\end{table}
+
+The weights are re-estimated \emph{recursively}. At every forecast origin the three schemes are fitted on an expanding window that uses only forecasts dated strictly before that origin, and the resulting weights are then applied to the current month. This matters: in an earlier version the weights were estimated once on a pre-2011 holdout and applied to the whole evaluation window, which made every ensemble forecast before 2011 -- including the entire GFC episode -- partly in-sample. Under the recursive scheme all ensemble forecasts are genuinely out-of-sample. The cost is that the ensemble cannot start until enough forecast history has accumulated (we require 48 months), so the 2002--2004 sub-period drops out of the ensemble comparison.
+
+Table~\ref{tab:ensemble_weights} reports the weights averaged over the recursive re-estimations. All three schemes concentrate on the Non-Linear with Variable Selection cell: Constrained OLS places $0.78$ on the Local Linear Forest applied to the full FRED-MD panel -- the best-performing individual model -- and Constrained Ridge still gives its largest single weight ($0.38$) to the same model. Best 5 spreads its weight across the four forest specifications and Ridge on the labour subset. The random-walk, rolling-mean and AR(4) benchmarks receive negligible weight in every scheme, as expected. Figure~\ref{fig:rmse_ensemble} re-plots the sub-period RMSE adding the ensemble line. The ensemble tracks the best non-linear family closely, never sits among the worst-performing specifications in any sub-period, and improves on the average across the windows -- in the COVID window the constrained-OLS ensemble matches the best single family exactly ($0.33$), and in the GFC window it improves on it ($0.47$ against $0.45$--$0.52$ for the individual non-linear families). Consistent with Section~\ref{subsec:main_results}, however, the ensembles do not beat the best single model (the Local Linear Forest) by a statistically significant margin; their value is robustness across regimes rather than a further accuracy gain.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{Figures/RMSE/RMSE_Chart_3_Months_Ensemble.png}
+  \caption{Out-of-sample RMSE by three-year sub-period including the ensemble, $h=3$.}
+  \label{fig:rmse_ensemble}
+\end{figure}
+
+\subsection{Rolling-Window Variable Importance}
+\label{subsec:var_imp}
+
+The RMSE comparison documents that flexible models outperform the linear Phillips Curve during shocks but cannot identify which economic channels drive the gain. We address that question with two complementary diagnostics drawn from the Random Forest model. The first is permutation variable importance, which measures the deterioration in forecast accuracy when a given predictor is randomly reordered across observations in the training data, breaking any systematic link between that predictor and inflation. Variable importance thus provides a summary of each variable's average role in the model. The second is the SHAP decomposition \citep{lundberg2017shap}, which assigns to every predictor an explicit contribution to each individual monthly forecast. The SHAP value specifies how much that variable pushed the prediction up or down in that specific month. Because SHAP is computed for each month individually rather than averaged across the training window, it can shift sharply month by month. This way, a variable whose average role in the model is small can still drive a specific forecast.
+
+Figure~\ref{fig:rf_imp_line} plots the twelve-month rolling Random Forest variable importance aggregated into the eight FRED-MD groups of \citet{mccracken2016fredmd}. Prices, interest and exchange rates together account for roughly half of the total importance throughout. Employment and housing make up most of the rest. The clearest movement is in the employment group, whose share rises from about $13\%$ in the early 2000s to $21\%$ by 2024, accelerating visibly during 2020--2022 as labour-market variables become more informative for inflation. Outside this group the shares barely move across the GFC and COVID windows. This is the expected behaviour of a metric averaged over a forty-year training window, where two years of COVID observations are too small a slice to shift the global average sharply.
+
+The deeper limitation is that variable importance describes the average shape of the forest, not the path any individual prediction takes through it. A Random Forest model is non-linear precisely because observations with extreme feature values can be routed down branches that more typical observations never reach, and the splits along those branches can depend on predictors that look unimportant on average. Variable importance averages this away. SHAP recovers it.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\linewidth]{Figures/Var_Imp/line_chart_var_imp_8groups.png}
+  \caption{Twelve-month rolling Random Forest variable importance by the eight \citet{mccracken2016fredmd} FRED-MD groups, $h=3$. Shares are renormalised so the plotted groups sum to 100\% at each date.}
+  \label{fig:rf_imp_line}
+\end{figure}
+
+Figure~\ref{fig:shap_supply_labor} plots the relative absolute SHAP contribution of two narrow groups motivated by Section~\ref{sec:theory}: a supply-price group (oil and producer prices for intermediate goods, crude materials and metals) and a labour-market group ($v/u$, non-farm employment, unemployment, initial unemployment claims). We sum absolute SHAP contributions within each group, smooth over twelve months, and divide by the group's own full-sample mean, so that $1.0$ corresponds to the model's average reliance.
+
+Both groups more than double their average contribution during 2021--2022 and return to baseline by 2024. Supply prices peak first, in early 2022, in line with the global supply-chain disruption; labour-market variables peak later, in late 2022.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{Figures/Var_Imp/rotation_shap_relative.png}
+  \caption{Relative absolute SHAP contribution of supply-price and labour-market variables to the Random Forest's $h=3$ inflation forecast. Twelve-month rolling mean, divided by each series' own full-sample average.}
+  \label{fig:shap_supply_labor}
+\end{figure}
+
+Taken together with the RMSE evidence in Section~\ref{subsec:main_results}, this rotation is consistent with two mechanisms in Section~\ref{sec:theory}: the supply-chain explanations of \citet{baqaee2022} and \citet{guerrieri2022} (Section~\ref{subsec:theory_supply}), and the tight-labour-market non-linearity of \citet{michaillat2024}, \citet{benigno2023} and \citet{gitti2024} (Section~\ref{subsec:theory_labor}) for the labour group. We do not find a comparable rotation for the expectations channel in Section~\ref{subsec:theory_other}: the SHAP contributions of consumer sentiment show no spike during 2020--2022.
+
+\subsection{Robustness}
+\label{subsec:robustness}
+
+The qualitative pattern documented in Section~\ref{subsec:main_results} is robust to alternative choices of training-window length and forecast horizon. Averaging RMSE across six robustness specifications (training windows of $20$, $30$ and $40$ years at horizons $h \in \{1, 3\}$) preserves the relative RMSE ordering across sub-periods (Figure~\ref{fig:rmse_robust}). The averaged pattern remains very close to the baseline in Section~\ref{subsec:main_results}.
+
+\todonote{\#TODO: Add core CPI (CPI less food and energy) and core PCE inflation as alternative targets. Headline CPI is dominated by energy at short horizons, so the core targets isolate the Phillips-Curve-relevant component of the forecast gains. The code is ready: run \texttt{70\_Robustness\_CoreCPI.R}, then re-run the model scripts and \texttt{50}--\texttt{61}.}
+
+\todonote{\#TODO (results definition): sub-period RMSEs quoted in Section~\ref{subsec:main_results} and plotted in Figure~\ref{fig:rmse_main} are still the \emph{average of the yearly RMSEs} within each window. By Jensen's inequality this understates the true RMSE: the pooled figure $\sqrt{\overline{e^2}}$ for the Linear Phillips Curve is $0.55$ in the GFC window rather than the $0.47$ currently reported, and $0.56$ rather than $0.52$ in COVID. \texttt{52\_RMSE\_Tables\_Charts.R} now pools correctly; the ratios between families, and therefore every percentage gain quoted in the text, are almost unchanged (GFC $15.1\%$, COVID $34.8\%$). Refresh the levels when the results are regenerated.}
+
+\todonote{\#TODO (blocking, results): the Local Linear Forest design contained a horizon bug -- its forecasts were built one month ahead irrespective of the requested horizon, so the ``LLF, $h=3$'' series was in fact a one-month-ahead forecast using three lags and was not comparable with the other $h=3$ models. Because the LLF sits in both non-linear families and absorbs most of the ensemble weight, every $h=3$ number that involves it is affected. The design has been corrected (all models now share \texttt{make\_design()} in \texttt{00\_Functions\_Design.R}), but the LLF has not yet been re-estimated. Re-run \texttt{20\_LLF.R} and then \texttt{50}--\texttt{61}; all tables and figures regenerate automatically. A check that drops the LLF entirely and leaves the Random Forest as the sole non-linear model preserves the qualitative result -- the COVID-window gain falls from $34.8\%$ to $30.2\%$ and the GFC gain from $15.1\%$ to $8.8\%$, while the calm-period gains stay at essentially zero -- so the regime-specific pattern is not an artefact of the bug, but the reported magnitudes will shrink.}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{Figures/Robustness/RMSE_Average_Chart.png}
+  \caption{Out-of-sample RMSE by three-year sub-period, averaged across six specifications (training windows of $20$, $30$ and $40$ years; $h=1$ and $h=3$).}
+  \label{fig:rmse_robust}
+\end{figure}
+
+% ==================== CONCLUSION ====================
+\FloatBarrier
+\section{Conclusion}
+\label{sec:conclusion}
+
+The inflation forecasting failures of the last two decades are not random bad luck. They reflect a fundamental misspecification in the linear Phillips Curve: a stable, constant-coefficient model averaged across regimes is not a reliable guide to a period that contains regimes far from the historical average. The forecast advantage of flexible models over the linear Phillips Curve is concentrated almost entirely in the GFC and COVID windows. Inside those windows the gain is on the order of 15--30\% in RMSE; outside them it is essentially zero, and in the post-2022 disinflation univariate benchmarks are again competitive. A model that can adapt both its functional form and its active predictor set to local windows of the sample does better precisely when regimes shift.
+
+The $2 \times 2$ decomposition along non-linearity and variable selection shows that both margins of flexibility contribute to the gain during shocks, but that their relative weight rotates with the nature of the episode: non-linearity accounts for essentially all of the gain in the GFC window, while the two margins contribute comparably during the COVID surge. No single fixed correction to the Phillips Curve does all the work in both episodes. This is the empirical signature of a regime-dependent inflation process in which both the relevant variables and the way those variables map into inflation rotate across states -- a structure that a single fixed-functional-form correction, however non-linear, cannot capture.
+
+A caveat is in order about what the forecast comparison can and cannot establish. The RMSE gaps inside the shock windows are large and their timing lines up with the theory, but each window contains only 36 monthly observations and the loss differentials are dominated by a few extreme months, so the Diebold--Mariano tests do not reject equal predictive accuracy window by window, and the Giacomini--Rossi fluctuation statistic stays inside its 5\% band throughout (Section~\ref{subsec:main_results}). What is statistically firm is that the flexible families beat both the linear Phillips Curve and the univariate benchmarks over the sample as a whole; the sharper claim that the gain is concentrated in shocks rests on the magnitude and timing of the RMSE gaps rather than on a formal rejection. Establishing the latter would require either a longer span of shock episodes or a test with more power against short-lived instabilities.
+
+The exercise is reduced-form, and the variable-importance results are correlational rather than causal. What the comparison delivers is a sharper test of whether the linear constant-coefficient summary is adequate, and on the evidence here, it is not. The empirical exercise is therefore complementary to work that takes state-dependence seriously, whether theoretical \citep{benigno2023,harding2022} or empirical \citep{cbo2023,coulombe2024,coulombe2022ml}. For practitioners, the implication is that inflation forecasting requires regime-awareness, and that a Phillips Curve slope estimated during the Great Moderation is not a reliable guide when supply chains collapse or labour markets overheat.
+
+% ==================== REFERENCES ====================
+\newpage
+\bibliographystyle{apalike}
+\bibliography{references}
+
+% ==================== APPENDICES ====================
+\newpage
+\appendix
+\section{Cumulative Forecast Errors}
+\label{app:cum_err}
+
+A complementary perspective on the regime-specific gains is provided by Figure~\ref{fig:cum_err}, which plots cumulative absolute forecast errors over 2001--2024 for one representative model from each family and for the two time-series benchmarks (recursive rolling mean and AR(4)). All six lines track each other closely until late 2008, after which the linear Phillips Curve and the time-series benchmarks pull away from the non-linear and variable-selection families. The gap widens again during the 2020--2022 COVID surge. By the end of the sample the Non-Linear with Variable Selection model has accumulated roughly $10$--$15\%$ less absolute error than the Linear Phillips Curve, and most of the gap is generated during the two shock windows.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\linewidth]{Figures/cum_err_all_step3_models2.png}
+  \caption{Cumulative absolute forecast error by model, 2001--2024 ($h=3$).}
+  \label{fig:cum_err}
+\end{figure}
+
+\newgeometry{margin=0.5in}
+\begin{landscape}
+\thispagestyle{lscape}
+\section{Results of Individual Models}
+\label{app:individual}
+This appendix reports the underlying individual-model RMSEs that are aggregated to the family level in Figure~\ref{fig:rmse_main}. The models here also include the Benchmark Classic Models, widely used statistical specifications that use only information contained in the target variable itself.
+
+\input{Tables/ShockTable_Step3_Ensemble}
+
+\end{landscape}
+\restoregeometry
+
+\end{document}
