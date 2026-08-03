@@ -30,37 +30,60 @@
 # direct-h-step design (make_design) as every other model in the project, so
 # MRF's numbers are comparable apples-to-apples.
 #
+# INTERPRETABILITY (the actual point of using MRF instead of another
+# black-box forest): for the full-panel h=3 case only (mirrors
+# SAVE_IMPORTANCE's "RF, h==3 only" scoping in 18_RandomForest.R, and matches
+# what 65_Rotation_SHAP.R's figure already targets, so the two are directly
+# comparable), every MRF() call also captures:
+#   - betas    : the GTVPs, i.e. the estimated time-varying coefficients on
+#                the linear part (own-lag of inflation + the K_FAC PCA
+#                factors) nearest that origin's forecast date. Something
+#                RF/LLF cannot give you at all - an actual Phillips-curve
+#                slope moving over time.
+#   - VI_oob / VI_oos / important.S : MRF's own variable-importance measures
+#                over the FULL state panel S_t, the piece that's genuinely
+#                comparable to 63_VarImp_8Groups.R / 65_Rotation_SHAP.R - it
+#                tells you which state variables shaped inflation dynamics in
+#                each origin's window, not just a fixed set of 5.
+# All of this comes back as a byproduct of fitting (VI=TRUE does add real
+# runtime, see PERFORMANCE below, but it's the whole reason to use MRF here).
+# Saved RAW (one list entry per origin, not reshaped into a tidy table) as
+# mrf_diagnostics_h3<tag>.rds - since the exact structure of MRF's VI output
+# couldn't be verified against a live R session while writing this, every
+# extraction is wrapped defensively so a bad assumption there can never break
+# the forecast itself, and the raw dump gets shaped into a proper chart once
+# there's real output to inspect (columns can be renamed/reshaped after the
+# fact - forecasts and importance don't need to be recomputed).
+#
 # PERFORMANCE & RESILIENCE
 # --------------------------
-# A single MRF fit (492-month window, full panel, B=50 trees) measured ~8
-# minutes on this machine. The rolling-window exercise needs ~nprev x 2
-# horizons x 2 panels of these (nprev ~ 300 months for the baseline sample) -
-# days of compute. Every origin is an independent fit, so this script runs
-# them in PARALLEL with the `parallel` package instead of reusing
-# 00_Functions_Design.R's sequential rolling_forecast() driver (which stays
-# untouched for RF/LLF).
+# A single MRF fit (492-month window, full panel, B=50 trees, VI=FALSE)
+# measured ~8 minutes on this machine; ~6 min/chunk of 4 origins in steady
+# state with 4 parallel workers. VI=TRUE (only for the MRF_h3 case, see
+# above) adds real overhead on top of that. Full sample = ~nprev x 2 horizons
+# x 2 panels of these (nprev ~ 300 months for the baseline sample) - this is
+# genuinely a multi-day-to-multi-week job on a single laptop; every origin is
+# an independent fit, so this script runs them in PARALLEL with the
+# `parallel` package instead of reusing 00_Functions_Design.R's sequential
+# rolling_forecast() driver (which stays untouched for RF/LLF).
 #
 # Diagnosed on this machine: sustained multi-minute, all-core-saturating PSOCK
 # work occasionally drops a worker's socket connection (short bursts and
-# lighter loads never reproduced it; see chat history / worker log for the
-# isolation tests). Root cause is environmental (Windows networking under
-# heavy sustained load, not this script's logic), so instead of chasing it
-# further this script is written to tolerate it: origins are processed in
-# small CHUNKS (one per worker), progress is CHECKPOINTED to disk after every
-# chunk, and a chunk whose cluster call errors triggers a cluster rebuild and
-# retry (up to MRF_MAX_RETRIES times) rather than losing the whole run. A
-# restarted R session picks up from the last checkpoint automatically.
+# lighter loads never reproduced it). Root cause is environmental (Windows
+# networking under heavy sustained load, not this script's logic), so instead
+# of chasing it further this script is written to tolerate it: origins are
+# processed in small CHUNKS (one per worker), progress is CHECKPOINTED to
+# disk after every chunk, and a chunk whose cluster call errors triggers a
+# cluster rebuild and retry (up to MRF_MAX_RETRIES times) rather than losing
+# the whole run. A restarted R session (or one moved to a faster machine)
+# picks up from the last checkpoint automatically - nothing already computed
+# is ever redone.
 #
-# SCOPE: by default this forecasts the two shock windows (SHOCK_SUBS in
-# 00_2_Config.R: 2008-2010, 2020-2022) PLUS a calm baseline of two more
-# sub-periods spread across the timeline (2005-2007 pre-GFC, 2017-2019
-# pre-COVID) - 144 months total instead of the full ~300-month sample. This
-# supports an approximate version of the paper's shock-vs-calm regime
-# comparison (Table 2) for MRF, at roughly half the cost of the full sample;
-# shock-only (72 months) would be faster but couldn't support that
-# comparison at all, since it needs a calm reference to compare against.
-# Override with .MRF_YEARS (a vector of years) before sourcing to change
-# scope, e.g. the full sample: .MRF_YEARS <- NULL; source("01_RScript/19_MRF.R").
+# SCOPE: full evaluation sample by default (every OOS month, same as
+# RF/LLF). Set .MRF_YEARS (a vector of years) before sourcing to restrict to
+# a subset instead, e.g. just the shock + a calm-baseline sample used
+# earlier in this project's exploration:
+#   .MRF_YEARS <- unlist(SUBPERIODS[c(SHOCK_SUBS, "2005-2007", "2017-2019")])
 # Add .MRF_TEST_MONTHS on top to further cap how many of the selected origins
 # are actually run, for a fast sanity check: .MRF_TEST_MONTHS <- 4.
 # ============================================================================
@@ -83,11 +106,12 @@ dates <- data$date
 nprev <- sum(dates >= OOS_START)
 target_dates <- tail(dates, nprev)   # target_dates[j] is the month forecast by origin j
 
-# Default scope: the two shock windows plus a calm baseline (see SCOPE note
-# above). CALM_BASELINE_SUBS is local to this script, not part of 00_2_Config.R.
-CALM_BASELINE_SUBS <- c("2005-2007", "2017-2019")
-.MRF_YEARS <- if (exists(".MRF_YEARS")) .MRF_YEARS else
-  unlist(SUBPERIODS[c(SHOCK_SUBS, CALM_BASELINE_SUBS)])
+# Default scope: full sample (see SCOPE note above). NULL = every OOS month.
+.MRF_YEARS <- if (exists(".MRF_YEARS")) .MRF_YEARS else NULL
+
+.mrf_tag <- paste0(WTAG,
+                   if (!is.null(.MRF_YEARS)) "_scoped" else "",
+                   if (exists(".MRF_TEST_MONTHS")) "_test" else "")
 
 ## ---- MRF-specific knobs (kept local so 00_2_Config.R is untouched) --------
 # Reuses OPT_LEVEL ("fast"/"standard"/"thorough") from Config for consistency,
@@ -100,11 +124,10 @@ MRF_MAX_RETRIES  <- 3
 options(timeout = 60 * 60 * 24)
 
 # Default capped at 4 workers: on a 16GB machine that's already at ~12GB used
-# before MRF even starts, running one worker per core (7) left too little
-# headroom and produced heavy swapping (a 4-origin chunk that should take
-# ~15 min took 61 min with no error at all - just thrashing). Override with
-# .MRF_N_CORES before sourcing if you have more RAM free to work with, e.g.
-# after closing Chrome/other apps: .MRF_N_CORES <- 6; source(...).
+# before MRF even starts, running one worker per core left too little
+# headroom and produced heavy swapping. Override with .MRF_N_CORES before
+# sourcing if running on a machine with more RAM/cores to spare, e.g.
+# .MRF_N_CORES <- 12; source(...).
 N_CORES <- if (exists(".MRF_N_CORES")) .MRF_N_CORES else
   max(1, min(4, parallel::detectCores() - 1))
 .PROJECT_ROOT <- getwd()
@@ -165,7 +188,7 @@ with_cluster_retry <- function(expr, what = "cluster operation") {
 # sentinel file) - force-kills that chunk's worker PIDs. Killing them breaks
 # the socket from the OS's side, which unblocks the master's read with a
 # connection error, letting the normal retry path take over from there.
-MRF_CHUNK_TIMEOUT <- 40 * 60   # seconds; generous vs. the ~14 min seen for a normal chunk
+MRF_CHUNK_TIMEOUT <- 60 * 60   # seconds; generous, VI=TRUE fits run slower than plain forecasts
 
 get_worker_pids <- function() {
   if (!file.exists(.MRF_WORKER_LOG)) return(integer(0))
@@ -192,31 +215,42 @@ cat(sprintf("MRF cluster: %d workers (log: %s)\n", N_CORES, .MRF_WORKER_LOG))
 # starting over. A chunk whose parLapply() call errors (e.g. a dropped
 # worker connection under heavy sustained load) rebuilds the cluster and
 # retries that chunk, up to MRF_MAX_RETRIES times.
+#
+# Diagnostics (betas + variable importance) only when label == "MRF_h3" (full
+# panel, h=3) - see INTERPRETABILITY note at the top of this file.
 rolling_forecast_mrf_par <- function(Y, nprev, window, h, hp, label = "") {
   k_block <- 1 + K_FAC           # inf + K_FAC PCA factors, per lag block
   x_idx   <- seq_len(k_block)    # nearest-past block (lag = h) -> linear part
+  keep_diag <- identical(label, "MRF_h3")
+
+  # Restrict to the target years (SCOPE note at the top of this file); NULL
+  # means no restriction, i.e. the full evaluation sample. Computed before the
+  # checkpoint/progress messages below so they report against the actual
+  # target count, not the full raw nprev.
+  wanted <- if (is.null(.MRF_YEARS)) seq_len(nprev)
+            else which(data.table::year(target_dates) %in% .MRF_YEARS)
+  if (exists(".MRF_TEST_MONTHS")) wanted <- head(wanted, .MRF_TEST_MONTHS)
+  n_wanted <- length(wanted)
 
   ckpt_file <- file.path(P_PRED, sprintf("._mrf_ckpt_%s%s.rds", label, WTAG))
   save.pred <- rep(NA_real_, nprev)
+  diag_list <- if (keep_diag) vector("list", nprev) else NULL
   done <- integer(0)
   if (file.exists(ckpt_file)) {
     ck <- readRDS(ckpt_file)
     save.pred[ck$idx] <- ck$pred
+    if (keep_diag && !is.null(ck$diag)) diag_list[ck$idx] <- ck$diag
     done <- ck$idx
-    cat(sprintf("  [%s] resuming from checkpoint: %d/%d origins already done\n",
-                label, length(done), nprev))
+    cat(sprintf("  [%s] resuming from checkpoint: %d/%d origins in scope already done\n",
+                label, length(intersect(done, wanted)), n_wanted))
   }
-  # Restrict to the target years (SCOPE note at the top of this file); NULL
-  # means no restriction, i.e. the full evaluation sample.
-  wanted <- if (is.null(.MRF_YEARS)) seq_len(nprev)
-            else which(data.table::year(target_dates) %in% .MRF_YEARS)
-  if (exists(".MRF_TEST_MONTHS")) wanted <- head(wanted, .MRF_TEST_MONTHS)
 
   todo <- setdiff(intersect(seq_len(nprev), wanted), done)
   if (length(todo) == 0) {
     real <- tail(Y[, 1], nprev)
     ok   <- !is.na(save.pred)
     return(list(pred = save.pred, real = real,
+                diag = if (keep_diag) list(dates = target_dates[wanted], diag = diag_list[wanted]) else NULL,
                 errors = c(rmse = sqrt(mean((real[ok] - save.pred[ok])^2)),
                            mae  = mean(abs(real[ok] - save.pred[ok])))))
   }
@@ -244,10 +278,25 @@ rolling_forecast_mrf_par <- function(Y, nprev, window, h, hp, label = "") {
              rw.regul            = 0.75,
              fast.rw             = TRUE,
              resampling.opt      = 2,
-             VI                  = FALSE,
+             VI                  = keep_diag,   # only the full-panel h=3 case pays this cost
              cheap.look.at.GTVPs = FALSE,
              printb              = FALSE)
-    as.numeric(m$pred)
+
+    out <- list(pred = as.numeric(m$pred))
+    if (keep_diag) {
+      # Everything here is best-effort: MRF's exact output structure for
+      # betas/VI_* couldn't be verified against a live R session while
+      # writing this, so each piece is captured defensively and RAW (not
+      # reshaped) - a wrong assumption here must never break the forecast,
+      # and raw output can still be reshaped later once real data exists.
+      out$diag <- tryCatch(list(
+        beta       = { b <- as.matrix(m$betas); if (is.null(b) || nrow(b) == 0) NULL else b[nrow(b), , drop = TRUE] },
+        VI_oob     = m$VI_oob,
+        VI_oos     = m$VI_oos,
+        important.S = m$important.S
+      ), error = function(e) list(error = conditionMessage(e)))
+    }
+    out
   }
 
   # NOTE: fit_one is deliberately NOT clusterExport()-ed. parLapply() below
@@ -258,7 +307,7 @@ rolling_forecast_mrf_par <- function(Y, nprev, window, h, hp, label = "") {
   # cluster communication immediately).
   export_vars <- function() {
     parallel::clusterExport(cl, varlist = c("Y", "window", "h", "hp", "k_block",
-                                            "x_idx", "MRF_B"),
+                                            "x_idx", "MRF_B", "keep_diag"),
                             envir = environment())
   }
   environment(export_vars) <- environment()
@@ -276,17 +325,23 @@ rolling_forecast_mrf_par <- function(Y, nprev, window, h, hp, label = "") {
       },
       what = sprintf("[%s] chunk (origins %d-%d)", label, min(ch), max(ch)))
 
-    save.pred[ch] <- unlist(out)
+    save.pred[ch] <- vapply(out, function(r) r$pred, numeric(1))
+    if (keep_diag) diag_list[ch] <- lapply(out, function(r) r$diag)
     done <- c(done, ch)
-    saveRDS(list(idx = done, pred = save.pred[done]), ckpt_file)
+
+    ckpt <- list(idx = done, pred = save.pred[done])
+    if (keep_diag) ckpt$diag <- diag_list[done]
+    saveRDS(ckpt, ckpt_file)
+
     cat(sprintf("  [%s] %d/%d done (chunk: %.1f min)\n",
-                label, length(done), nprev,
+                label, length(intersect(done, wanted)), n_wanted,
                 as.numeric(difftime(Sys.time(), t0, units = "mins"))))
   }
 
   real <- tail(Y[, 1], nprev)
   ok   <- !is.na(save.pred)   # months outside .MRF_YEARS scope stay NA
   list(pred = save.pred, real = real,
+       diag = if (keep_diag) list(dates = target_dates[wanted], diag = diag_list[wanted]) else NULL,
        errors = c(rmse = sqrt(mean((real[ok] - save.pred[ok])^2)),
                   mae  = mean(abs(real[ok] - save.pred[ok]))))
 }
@@ -306,6 +361,7 @@ run_mrf <- function(vars, nm, set) {
     r <- rolling_forecast_mrf_par(Y, nprev, TRAIN_WINDOW, h, hp,
                                   label = paste0(nm, "_h", h))
     out[[paste0("h", h)]] <- setNames(list(r$pred), nm)
+    if (!is.null(r$diag)) out$diag_h3 <- r$diag   # only ever set for nm=="MRF", h==3
     cat(sprintf("%-6s h=%d  RMSE %.4f\n", nm, h, r$errors["rmse"]))
   }
   out
@@ -324,11 +380,15 @@ for (h in HORIZONS) {
     preds[[hh]] <- preds[[hh]][data.table::year(date) %in% .MRF_YEARS]
   }
 }
-.mrf_tag <- paste0(WTAG,
-                   if (!is.null(.MRF_YEARS)) "_shocks" else "",
-                   if (exists(".MRF_TEST_MONTHS")) "_test" else "")
 saveRDS(preds, file.path(P_PRED, paste0("mrf", .mrf_tag, ".rds")))
 cat(sprintf("saved %s\n", file.path(P_PRED, paste0("mrf", .mrf_tag, ".rds"))))
+
+if (!is.null(full$diag_h3)) {
+  saveRDS(full$diag_h3, file.path(P_PRED, paste0("mrf_diagnostics_h3", .mrf_tag, ".rds")))
+  cat(sprintf("saved %s (%d origins)\n",
+              file.path(P_PRED, paste0("mrf_diagnostics_h3", .mrf_tag, ".rds")),
+              length(full$diag_h3$diag)))
+}
 
 # Clean up checkpoint files only once EVERY origin is done (.MRF_YEARS scope
 # restrictions leave most origins un-computed on purpose - keep the
