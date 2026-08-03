@@ -19,17 +19,22 @@
 # ============================================================================
 source("01_RScript/00_2_Config.R")
 
-# Picks the widest-scope MRF file available: a full-sample run if you've done
-# one (mrf_w492.rds), otherwise the shock+calm default (mrf_w492_shocks.rds).
-mrf_file <- if (file.exists(file.path(P_PRED, paste0("mrf", WTAG, ".rds")))) {
-  paste0("mrf", WTAG, ".rds")
-} else if (file.exists(file.path(P_PRED, paste0("mrf", WTAG, "_shocks.rds")))) {
-  paste0("mrf", WTAG, "_shocks.rds")
-} else {
-  stop("No MRF predictions found in ", P_PRED, " - run 19_MRF.R first.")
-}
-cat(sprintf("Using MRF file: %s\n", mrf_file))
-mrf <- readRDS(file.path(P_PRED, mrf_file))
+# Picks the widest-scope MRF predictions file available. 19_MRF.R's scope tag
+# has changed while this was being developed (test-only / shock+calm / full
+# sample all produce differently-named files), so rather than hardcode a
+# specific suffix, this globs for every "mrf<WTAG>*.rds" prediction file
+# (explicitly excluding checkpoints and the diagnostics/betas dump, which are
+# a different shape) and picks whichever one covers the most months - that's
+# always the full-sample file if one exists, since it's a superset of any
+# scoped run.
+candidates <- Sys.glob(file.path(P_PRED, paste0("mrf", WTAG, "*.rds")))
+candidates <- candidates[!grepl("ckpt|diagnostics", basename(candidates))]
+if (length(candidates) == 0) stop("No MRF predictions found in ", P_PRED, " - run 19_MRF.R first.")
+
+candidate_sizes <- sapply(candidates, function(f) nrow(readRDS(f)[["h1"]]))
+mrf_file <- candidates[which.max(candidate_sizes)]
+cat(sprintf("Using MRF file: %s (%d months)\n", basename(mrf_file), max(candidate_sizes)))
+mrf <- readRDS(mrf_file)
 
 rmse <- function(real, pred) sqrt(mean((real - pred)^2))
 
