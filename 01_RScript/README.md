@@ -17,6 +17,14 @@ sample 1960-01 .. 2025-12 from the 2026-06 FRED-MD vintage).
   labor_h3`; fill in as case-specific tuning is done locally (empty list =
   defaults, which reproduces the current paper).
 * `USE_DUMMIES` — GFC/COVID dummies in every model (FALSE for the paper).
+* `TUNE` — hyper-parameter search, **off by default**. Set to
+  `c("lasso","ridge","elnet")` (minutes), add `"rf"` (slow), or `"all"` to
+  include the LLF (very slow), then run `05_Tune_Hyperparameters.R` (the
+  master script calls it automatically when `TUNE` is not FALSE). It scores
+  every candidate by rolling-window RMSE on the 120 months **before**
+  `OOS_START`, so the evaluation period is never used for tuning, and prints
+  a paste-ready `HP_CASES` block. `TUNE_NPREV` / `TUNE_WINDOW` / `TUNE_OPT` /
+  `TUNE_GRID` control the validation design and the grids.
 
 ## Specifications
 
@@ -34,6 +42,7 @@ averages every spec it finds under `03_Output/Preds/`.
 | `00_Functions_Design.R` | shared design matrix + rolling-window driver |
 | `01_Data_Transformation.R` / `02_Data_Cleaning.R` | `data_cleaned.rds` |
 | `07_Descriptives_Clean.R` | Figures 1-2 + descriptives table |
+| `05_Tune_Hyperparameters.R` | grid search -> paste-ready `HP_CASES` (optional) |
 | `10/15/18/20` | benchmarks, penalised, RF, LLF forecasts |
 | `50_Assemble_Predictions.R` | canonical `preds_h{1,3}_w*.rds` |
 | `51/52/60/61` | cum-error fig, RMSE fig, DM+interaction tables, ensembles |

@@ -9,6 +9,7 @@
 #   VINTAGE_CSV / SAMPLE_END   raw data and sample cut
 #   OPT_LEVEL                  "fast" | "standard" | "thorough" forest runtime
 #   HP_DEFAULT / HP_CASES      hyper-parameters, per (set, horizon) case
+#   TUNE                       switch on the grid search (05_Tune_...)
 #   USE_DUMMIES                GFC/COVID dummies (FALSE for the paper)
 #
 # Other specifications (e.g. the six robustness runs: 20/30/40-year windows
@@ -22,6 +23,11 @@ source("01_RScript/02_Data_Cleaning.R")
 
 ## 2. Descriptives (Figures 1-2, Table of descriptives) ----------------------
 source("01_RScript/07_Descriptives_Clean.R")
+
+## 2b. Hyper-parameter search [OPTIONAL, off unless TUNE is set in config] ----
+# Grid-searches on a pre-2001 validation sample and prints a paste-ready
+# HP_CASES block. Skipped entirely when TUNE is FALSE (the default).
+if (!isFALSE(TUNE)) source("01_RScript/05_Tune_Hyperparameters.R")
 
 ## 3. Forecasting models  [SLOW: forests dominate] ---------------------------
 # Runs every SPECS entry with run = TRUE (default: baseline only).

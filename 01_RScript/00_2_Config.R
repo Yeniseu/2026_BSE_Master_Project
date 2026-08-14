@@ -104,6 +104,39 @@ HP_CASES <- list(
   labor_h1 = list(),
   labor_h3 = list()
 )
+
+## ---- Hyper-parameter SEARCH (off by default) ------------------------------
+# The pipeline normally just uses the stored values above. To re-tune, set
+# TUNE to the models you want searched and run 05_Tune_Hyperparameters.R:
+#
+#   TUNE <- c("lasso", "ridge", "elnet")        # penalised only (minutes)
+#   TUNE <- c("lasso", "ridge", "elnet", "rf")  # + random forest (slow)
+#   TUNE <- "all"                               # + LLF (very slow)
+#
+# The script grid-searches each case (set x horizon) by rolling-window RMSE on
+# a validation sample that ends BEFORE OOS_START, so tuning never sees the
+# evaluation period. It prints a ready-to-paste HP_CASES block and saves
+# 03_Output/Tuning/hp_tuned.rds; nothing is overwritten automatically.
+TUNE <- FALSE
+
+# Validation design: the last TUNE_NPREV months before OOS_START are forecast
+# with a rolling window of TUNE_WINDOW months. Both must fit in the pre-sample
+# (1960-01 .. OOS_START-1), so the tuning window is shorter than TRAIN_WINDOW.
+TUNE_NPREV  <- 120                          # 10 years of validation forecasts
+TUNE_WINDOW <- TRAIN_WINDOW - TUNE_NPREV    # keeps tuning inside the pre-sample
+TUNE_OPT    <- "fast"                       # forest size while tuning
+
+# Grids. NULL for the penalised lambdas = derive the grid from glmnet's own
+# lambda path on the validation design (recommended). mtry grids are fractions
+# of the number of predictors, so they adapt to the full panel vs labour subset.
+TUNE_GRID <- list(
+  lambda_n    = 25,                                   # grid points if auto
+  lasso_lambda = NULL,
+  ridge_lambda = NULL,
+  elnet_alpha  = seq(0.1, 0.9, by = 0.2),
+  elnet_lambda = NULL,
+  mtry_frac    = c(0.05, 0.1, 0.2, 1/3, 0.5)          # used for RF and LLF
+)
 get_hp <- function(set, h) {
   key <- paste0(set, "_h", h)
   over <- HP_CASES[[key]]
