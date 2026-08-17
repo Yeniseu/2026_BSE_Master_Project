@@ -22,7 +22,7 @@ source("01_RScript/01_Data_Transformation.R")
 source("01_RScript/02_Data_Cleaning.R")
 
 ## 2. Descriptives (Figures 1-2, Table of descriptives) ----------------------
-source("01_RScript/07_Descriptives_Clean.R")
+#source("01_RScript/07_Descriptives_Clean.R")
 
 ## 2b. Hyper-parameter search [OPTIONAL, off unless TUNE is set in config] ----
 # Grid-searches on a pre-2001 validation sample and prints a paste-ready
