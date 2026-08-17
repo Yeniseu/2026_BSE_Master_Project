@@ -40,9 +40,9 @@ source("01_RScript/60_Forecast_Tests.R")
 source("01_RScript/61_Ensemble_Recursive.R")
 
 ## 5. Variable importance and SHAP  [SLOW] -----------------------------------
-source("01_RScript/63_VarImp_8Groups.R")
-source("01_RScript/64_SHAP_Values.R")            # slowest single script
-source("01_RScript/65_Rotation_SHAP.R")
+#source("01_RScript/63_VarImp_8Groups.R")
+#source("01_RScript/64_SHAP_Values.R")            # slowest single script
+#source("01_RScript/65_Rotation_SHAP.R")
 
 ## 6. Robustness --------------------------------------------------------------
 # After running the extra window specs in 00_3_Run_Specifications.R:

@@ -19,10 +19,10 @@
 # ============================================================================
 
 SPECS <- list(
-  baseline = list(window = 492, opt = "standard", run = T),
-  w240     = list(window = 240, opt = "standard", run = F),   # 20-year window
-  w360     = list(window = 360, opt = "standard", run = T),   # 30-year window
-  w480     = list(window = 480, opt = "standard", run = T)    # 40-year window
+  baseline = list(window = 492, opt = "standard", run = F),
+  w360     = list(window = 360, opt = "standard", run = F),   # 30-year window
+  w420     = list(window = 420, opt = "standard", run = T),   # 35-year window
+  w480     = list(window = 480, opt = "standard", run = F)    # 40-year window
 )
 
 MODEL_SCRIPTS <- c("01_RScript/10_Benchmarks.R",
