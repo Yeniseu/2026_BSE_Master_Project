@@ -19,9 +19,9 @@
 # ============================================================================
 
 SPECS <- list(
-  baseline = list(window = 492, opt = "standard", run = F),
+  baseline = list(window = 492, opt = "standard", run = T),
   w360     = list(window = 360, opt = "standard", run = F),   # 30-year window
-  w420     = list(window = 420, opt = "standard", run = T),   # 35-year window
+  w420     = list(window = 420, opt = "standard", run = F),   # 35-year window
   w480     = list(window = 480, opt = "standard", run = F)    # 40-year window
 )
 
