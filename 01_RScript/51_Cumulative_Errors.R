@@ -15,7 +15,7 @@ SHOW <- c("RSM" = "Rolling mean",
           "RF"  = "Non-Linear + Var. Selection")
 
 for (h in HORIZONS) {
-  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
+  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, BASE_WTAG)))
 
   cum <- d[, c(list(date = date),
                lapply(.SD, function(x) cumsum(abs(x - real)))),

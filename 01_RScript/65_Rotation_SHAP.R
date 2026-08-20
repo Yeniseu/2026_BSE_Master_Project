@@ -10,7 +10,7 @@
 source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
-obj   <- readRDS(file.path(P_PRED, paste0("shap_h3", WTAG, ".rds")))
+obj   <- readRDS(file.path(P_PRED, paste0("shap_h3", BASE_WTAG, ".rds")))
 shaps <- obj$shap
 
 SUPPLY <- c("OILPRICEx", "WPSID61", "WPSID62", "PPICMM")            # oil + producer prices

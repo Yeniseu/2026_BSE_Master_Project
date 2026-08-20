@@ -36,7 +36,7 @@ save_pred <- rep(NA_real_, nprev)
 
 for (i in nprev:1) {
   idx_end   <- nrow(Y) - i
-  idx_start <- idx_end - TRAIN_WINDOW + 1
+  idx_start <- idx_end - BASE_WINDOW + 1
   j <- 1 + nprev - i
 
   Dw  <- if (is.null(dum)) NULL else dum[idx_start:idx_end, , drop = FALSE]
@@ -58,5 +58,5 @@ for (i in nprev:1) {
 }
 
 saveRDS(list(dates = tail(dates, nprev), shap = save_shap, pred = save_pred),
-        file.path(P_PRED, paste0("shap_h3", WTAG, ".rds")))
+        file.path(P_PRED, paste0("shap_h3", BASE_WTAG, ".rds")))
 cat("SHAP values saved\n")

@@ -48,6 +48,8 @@ gg <- ggplot(pl, aes(sub, RMSE, group = Model, colour = Model)) +
   theme(axis.text.x    = element_text(angle = 90, hjust = 1),
         legend.position = "top", legend.title = element_blank(),
         plot.title    = element_text(hjust = 0.5, face = "bold"),
-        plot.subtitle = element_text(hjust = 0.5))
+        plot.subtitle = element_text(hjust = 0.5)) +
+  # two rows: the four family names do not fit on one line
+  guides(colour = guide_legend(nrow = 2, byrow = TRUE))
 
 ggsave(file.path(F_ROB, "RMSE_Average_Chart.png"), gg, width = 7, height = 5)

@@ -1,0 +1,202 @@
+# Author: Adapted for Local Linear Forest
+# Scope : Apply Local Linear Forest to FRED-MD inflation forecasting
+
+library(data.table)
+library(grf)
+library(ggplot2)
+
+rm(list = ls()) 
+options(print.max = 300, scipen = 30, digits = 5)
+
+source("01_RScript/00_Functions_LLF.R")
+
+#### Load & prepare ####
+
+fred <- readRDS("02_Input/data_cleaned.rds")
+setDT(fred)
+
+setnames(fred, "CPIAUCSL", "inf")
+setcolorder(fred, c("date", "inf"))
+labor_indicators <- c(
+  "HWI","HWIURATIO","CLF16OV","CE16OV","UNRATE","UEMPMEAN","UEMPLT5","UEMP5TO14",
+  "UEMP15OV","UEMP15T26","UEMP27OV","CLAIMSx","PAYEMS","USGOOD","CES1021000001",
+  "USCONS","MANEMP","DMANEMP","NDMANEMP","SRVPRD","USTPU","USWTRADE","USTRADE",
+  "USFIRE","USGOVT","CES0600000007","AWOTMAN","AWHMAN","NAPMEI","CES0600000008",
+  "CES2000000008","CES3000000008"
+)
+labor_indicators <- labor_indicators[labor_indicators %in%  names(fred)]
+#fred <- fred[, .SD, .SDcols=c("date", "inf", labor_indicators)]  # Open for only labor indicators
+
+
+data <- copy(fred)
+s1_ends <- data[, which(date=="2015-12-01")]
+s2_ends <- nrow(fred)
+### Option 1
+
+### Option 1
+dt_s1 <- data[1:s1_ends, ]
+dt_s2 <- data[1:s2_ends, ]
+### Option 2
+dt_s1 <- data[(s1_ends-240-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-240-108):s2_ends, ]
+### Option 3
+dt_s1 <- data[(s1_ends-360-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-360-108):s2_ends, ]
+### Option 4
+dt_s1 <- data[(s1_ends-480-180):s1_ends, ]
+dt_s2 <- data[(s2_ends-480-108):s2_ends, ]
+
+
+
+### Final Data
+Y1 <- copy(dt_s1)
+Y1_mat <- as.matrix(Y1[, -c("date")])
+Y2 <- copy(dt_s2)
+Y2_mat <- as.matrix(Y2[, -c("date")])
+
+#### TUNING: validation sample 1991-2000 ####
+Y_val <- copy(data[date < "2001-01-01"])
+Y_val_mat <- as.matrix(Y_val[, date := NULL])
+
+# 120 OOS validation observations = 1991-2000
+nprev <- 120
+
+# To make mtry grid coherent with the actual design dimension,
+# approximate p after PCA+lag with lag = 1:
+p_base <- ncol(Y_val_mat) + 4
+mtry_grid <- unique(sort(c(
+  5, 10, 20, 30, 40, 50,
+  round(p_base / 10), round(p_base / 8), round(p_base / 6),
+  round(p_base / 4), round(p_base / 3), round(p_base / 2)
+)))
+mtry_grid <- mtry_grid[mtry_grid <= p_base]
+
+# Run once if you want to retune
+# set.seed(123)
+# llf_mtry_results <- llf_rolling_window_tune_mtry(
+#   Y_raw = Y_val_mat,
+#   nprev = nprev,
+#   mtry_grid = mtry_grid,
+#   target_col = 1,
+#   lag = 1,
+#   kfac = 4,
+#   num.trees = 2000,
+#   min.node.size = 5,
+#   honesty = TRUE,
+#   sample.fraction = 0.5,
+#   seed = 123
+# )
+# saveRDS(llf_mtry_results, file = "03_Output/llfres_mtry.rds")
+
+
+#### FIRST OOS PERIOD: 2001-2015 ####
+
+
+# Reproduce your crisis dummy logic
+dum1 <- rep(0, nrow(Y1))
+dum1[which.min(Y1$inf)] <- 1
+
+# 180 OOS observations = 2001-2015
+nprev <- 180
+set.seed(123)
+llf1_1 <- llf_rolling_window(
+  Y_raw = Y1_mat,
+  nprev = nprev,
+  target_col = 1,
+  lag = 1,
+  kfac = 4,
+  num.trees = 2000,
+  #mtry = best_mtry,
+  min.node.size = 5,
+  honesty = TRUE,
+  sample.fraction = 0.5,
+  tune_ll_lambda = FALSE,      # turn TRUE if you want slower but more tailored fits
+  seed = 123,
+  dummy_full = dum1,
+  plot_results = TRUE
+)
+llf1_1$errors
+
+set.seed(123)
+llf1_3 <- llf_rolling_window(
+  Y_raw = Y1_mat,
+  nprev = nprev,
+  target_col = 1,
+  lag = 3,
+  kfac = 4,
+  num.trees = 2000,
+  #mtry = best_mtry,
+  min.node.size = 5,
+  honesty = TRUE,
+  sample.fraction = 0.5,
+  tune_ll_lambda = FALSE,
+  seed = 123,
+  dummy_full = dum1,
+  plot_results = TRUE
+)
+llf1_3$errors
+
+#### SECOND OOS PERIOD: 2016-2024 ####
+
+# 108 OOS observations = 2016-2024
+nprev <- 108
+set.seed(123)
+llf2_1 <- llf_rolling_window(
+  Y_raw = Y2_mat,
+  nprev = nprev,
+  target_col = 1,
+  lag = 1,
+  kfac = 4,
+  num.trees = 2000,
+  #mtry = best_mtry,
+  min.node.size = 5,
+  honesty = TRUE,
+  sample.fraction = 0.5,
+  tune_ll_lambda = FALSE,
+  seed = 123,
+  plot_results = TRUE
+)
+llf2_1$errors
+
+set.seed(123)
+llf2_3 <- llf_rolling_window(
+  Y_raw = Y2_mat,
+  nprev = nprev,
+  target_col = 1,
+  lag = 3,
+  kfac = 4,
+  num.trees = 2000,
+  #mtry = best_mtry,
+  min.node.size = 5,
+  honesty = TRUE,
+  sample.fraction = 0.5,
+  tune_ll_lambda = FALSE,
+  seed = 123,
+  plot_results = TRUE
+)
+llf2_3$errors
+
+
+llf_s1 <- data.table(llf1_1 = llf1_1$pred, llf1_3 = llf1_3$pred)
+llf_s2 <- data.table(llf2_1 = llf2_1$pred, llf2_3 = llf2_3$pred)
+#saveRDS(llf_s1, file = "03_Output/llf_s1.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor.rds")
+
+
+#saveRDS(llf_s1, file = "03_Output/llf_s1_20.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_20.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_20.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_20.rds")
+
+#saveRDS(llf_s1, file = "03_Output/llf_s1_30.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_30.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_30.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_30.rds")
+
+#saveRDS(llf_s1, file = "03_Output/llf_s1_40.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_40.rds")
+#saveRDS(llf_s1, file = "03_Output/llf_s1_labor_40.rds")
+#saveRDS(llf_s2, file = "03_Output/llf_s2_labor_40.rds")
+

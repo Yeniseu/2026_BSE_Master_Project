@@ -167,6 +167,21 @@ for (p in c(P_OUT, P_PRED, P_PAPER, F_DESC, F_RMSE, F_VAR, F_ROB, T_DIR))
 WTAG <- paste0("_w", TRAIN_WINDOW,
                if (OPT_LEVEL == "standard") "" else paste0("_", OPT_LEVEL))
 
+## ---- Which specification the PAPER reports --------------------------------
+# Two different things, deliberately kept apart:
+#   WTAG      the specification currently being ESTIMATED (used by 10-50).
+#   BASE_WTAG the specification the paper REPORTS (used by 51-65).
+# The reporting scripts are pinned to the baseline, so a leftover .SPEC_WINDOW
+# from a robustness run can never silently redirect the paper's tables and
+# figures to another window. Change BASE_WINDOW only if the paper's headline
+# specification itself changes.
+BASE_WINDOW <- 492                      # 41-year rolling window
+BASE_OPT    <- "standard"
+BASE_WTAG   <- paste0("_w", BASE_WINDOW,
+                      if (BASE_OPT == "standard") "" else paste0("_", BASE_OPT))
+
+cat(sprintf("[config] estimating: %s | paper reports: %s\n", WTAG, BASE_WTAG))
+
 # Per-window RF importance is needed for the variable-importance figure.
 SAVE_IMPORTANCE <- TRUE
 

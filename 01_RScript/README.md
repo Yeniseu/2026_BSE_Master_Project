@@ -17,6 +17,12 @@ sample 1960-01 .. 2025-12 from the 2026-06 FRED-MD vintage).
   labor_h3`; fill in as case-specific tuning is done locally (empty list =
   defaults, which reproduces the current paper).
 * `USE_DUMMIES` — GFC/COVID dummies in every model (FALSE for the paper).
+* `BASE_WINDOW` / `BASE_WTAG` — the specification the **paper reports** (41-year
+  baseline). Kept separate from `WTAG`, which is the specification currently
+  being *estimated*: scripts `10`–`50` write per-spec files using `WTAG`, while
+  the reporting scripts `51`–`65` always read `BASE_WTAG`. This is why a
+  leftover `.SPEC_WINDOW` from a robustness run cannot redirect the paper's
+  tables and figures to another window. Config prints both tags on load.
 * `TUNE` — hyper-parameter search, **off by default**. Set to
   `c("lasso","ridge","elnet")` (minutes), add `"rf"` (slow), or `"all"` to
   include the LLF (very slow), then run `05_Tune_Hyperparameters.R` (the
@@ -50,8 +56,10 @@ averages every spec it finds under `03_Output/Preds/`.
 | `55` / `70` | window-robustness average / core-CPI target |
 | `00_3_Run_Specifications.R` | spec driver (baseline by default) |
 
-Everything after `50_` reads only `preds_h*_w*.rds`, and every figure/table
-lands directly in `06_Latex/` under the exact name `main.tex` expects.
+Everything after `50_` reads only `preds_h*_w*.rds` — the reporting scripts via
+`BASE_WTAG` (the baseline), `55` by globbing every specification — and every
+figure/table lands directly in `06_Latex/` under the exact name the paper
+expects.
 
 NOTE (2026-06 vintage): October 2025 was never published for CPI and ~20
 series (federal government shutdown). The EM/PCA imputation in `02` fills

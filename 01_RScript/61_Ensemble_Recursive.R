@@ -26,7 +26,7 @@ LAMBDA    <- 5    # ridge penalty; shrinks the weights toward equality
 ENS       <- c("Best 5", "Constr. OLS", "Constr. Ridge")
 
 for (h in HORIZONS) {
-  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
+  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, BASE_WTAG)))
   X <- as.matrix(d[, ..MODELS]); y <- d$real; k <- length(MODELS)
   d[, (ENS) := NA_real_]        # pre-allocate ensemble columns by reference
   W <- list()
@@ -118,7 +118,9 @@ for (h in HORIZONS) {
     theme(axis.text.x    = element_text(angle = 90, hjust = 1),
           legend.position = "top", legend.title = element_blank(),
           plot.title    = element_text(hjust = 0.5, face = "bold"),
-          plot.subtitle = element_text(hjust = 0.5))
+          plot.subtitle = element_text(hjust = 0.5)) +
+    # two rows: five series do not fit on one line
+    guides(colour = guide_legend(nrow = 2, byrow = TRUE))
 
   ggsave(file.path(F_RMSE, "RMSE_Chart_3_Months_Ensemble.png"), gg, width = 7, height = 5)
 }

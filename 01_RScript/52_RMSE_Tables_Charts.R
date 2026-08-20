@@ -12,7 +12,7 @@ source("01_RScript/00_2_Config.R")
 library(ggplot2)
 
 for (h in HORIZONS) {
-  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
+  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, BASE_WTAG)))
   d <- d[!is.na(sub)]
 
   # RMSE of each individual model, pooled within sub-period
@@ -45,7 +45,9 @@ for (h in HORIZONS) {
     theme(axis.text.x    = element_text(angle = 90, hjust = 1),
           legend.position = "top", legend.title = element_blank(),
           plot.title    = element_text(hjust = 0.5, face = "bold"),
-          plot.subtitle = element_text(hjust = 0.5))
+          plot.subtitle = element_text(hjust = 0.5)) +
+    # two rows: the four family names do not fit on one line
+    guides(colour = guide_legend(nrow = 2, byrow = TRUE))
 
   ggsave(file.path(F_RMSE, sprintf("RMSE_Chart_%d_Months.png", h)),
          gg, width = 7, height = 5)

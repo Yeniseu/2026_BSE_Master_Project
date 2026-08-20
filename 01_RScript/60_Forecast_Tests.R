@@ -106,7 +106,7 @@ SLICES <- list(GFC = "2008-2010", COVID = "2020-2022",
                Shock = "shock", Calm = "calm", Full = "FULL")
 
 for (h in HORIZONS) {
-  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, WTAG)))
+  d <- readRDS(file.path(P_PRED, sprintf("preds_h%d%s.rds", h, BASE_WTAG)))
   d <- d[!is.na(sub)]
   for (f in names(FAMILIES)) d[, (f) := rowMeans(.SD), .SDcols = FAMILIES[[f]]]
   d[, shock := as.integer(sub %in% SHOCK_SUBS)]

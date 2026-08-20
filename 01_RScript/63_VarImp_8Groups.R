@@ -14,7 +14,7 @@ source("01_RScript/00_2_Config.R")
 library(ggplot2)
 library(scales)
 
-imp_file <- file.path(P_PRED, paste0("rf_importance_h3", WTAG, ".rds"))
+imp_file <- file.path(P_PRED, paste0("rf_importance_h3", BASE_WTAG, ".rds"))
 stopifnot(file.exists(imp_file))
 obj   <- readRDS(imp_file)
 dates <- obj$dates
