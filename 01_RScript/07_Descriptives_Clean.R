@@ -60,20 +60,20 @@ theme_ec <- function(base_size = 11, legend = "none", size = 10) {
     theme(
       plot.background  = element_rect(fill = "white", colour = NA),
       panel.background = element_rect(fill = "white", colour = NA),
-      plot.margin      = margin(t = 10, r = 14, b = 6, l = 8),
+      plot.margin      = ggplot2::margin(t = 10, r = 14, b = 6, l = 8),
       
       plot.title    = element_text(face = "bold",   size = size+2,
                                    family = "serif", hjust = 0,
                                    colour = COL_TEXT,
-                                   margin = margin(b = 3)),
+                                   margin = ggplot2::margin(b = 3)),
       plot.subtitle = element_text(face = "italic", size = size,
                                    family = "serif", hjust = 0,
                                    colour = "#444455",
-                                   margin = margin(b = 8)),
+                                   margin = ggplot2::margin(b = 8)),
       plot.caption  = element_text(face = "italic", size = size-1,
                                    family = "serif", hjust = 0,
                                    colour = "#444455",
-                                   margin = margin(t = 6)),
+                                   margin = ggplot2::margin(t = 6)),
       plot.title.position   = "plot",
       plot.caption.position = "plot",
       
@@ -95,7 +95,7 @@ theme_ec <- function(base_size = 11, legend = "none", size = 10) {
                                        colour = COL_TEXT),
       legend.key.width  = unit(1.6, "lines"),
       legend.key.height = unit(0.5, "lines"),
-      legend.margin     = margin(0, 0, 4, 0)
+      legend.margin     = ggplot2::margin(0, 0, 4, 0)
     )
 }
 
@@ -103,15 +103,15 @@ ec_annotation_theme <- theme(
   plot.title    = element_text(face = "bold",   size = 15,
                                family = "serif", hjust = 0,
                                colour = COL_TEXT,
-                               margin = margin(t = 12, b = 3)),
+                               margin = ggplot2::margin(t = 12, b = 3)),
   plot.subtitle = element_text(face = "italic", size = 11,
                                family = "serif", hjust = 0,
                                colour = "#444455",
-                               margin = margin(b = 10)),
+                               margin = ggplot2::margin(b = 10)),
   plot.caption  = element_text(face = "italic", size = 9,
                                family = "serif", hjust = 0,
                                colour = "#444455",
-                               margin = margin(t = 8)),
+                               margin = ggplot2::margin(t = 8))
 )
 
 
@@ -129,11 +129,10 @@ raw[, date := as.Date(date, format = "%m/%d/%Y")]
 raw <- raw[!is.na(date), .(date, UNRATE, HWIURATIO)]
 
 DT <- merge(DT, raw, by = "date", all.x = TRUE)
-dir.create("03_Output/Paper/Descriptives", recursive = TRUE, showWarnings = FALSE)
 
 
 # ---- 2. Build working sample (unchanged) ---------------------------------
-DT <- DT[date >= as.Date("2002-01-01") & date <= as.Date("2024-12-31")]
+DT <- DT[date >= as.Date("2002-01-01") & date <= as.Date("2025-12-31")]
 DT[, `:=`(
   infl_mom = CPIAUCSL,
   infl_ann = CPIAUCSL * 12,
@@ -141,11 +140,11 @@ DT[, `:=`(
 )]
 
 regime_levels <- c("Normal Periods (pre-2008)", "2008-10 GFC",
-                   "Normal Periods (2010-2019)", "2020-22 COVID",
+                   "Normal Periods (2011-2019)", "2020-22 COVID",
                    "Normal Periods (post-2022)")
 DT[, regime := fifelse(date <  as.Date("2008-01-01"), "Normal Periods (pre-2008)",
                        fifelse(date <  as.Date("2011-01-01"), "2008-10 GFC",
-                      fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2010-2019)",
+                      fifelse(date <  as.Date("2020-01-01"), "Normal Periods (2011-2019)",
                       fifelse(date <  as.Date("2023-01-01"), "2020-22 COVID",
                                                "Normal Periods (post-2022)"))))]
 DT[, regime := factor(regime, levels = regime_levels)]
@@ -155,10 +154,12 @@ DT[, regime2 := fifelse(regime %in% c("2008-10 GFC", "2020-22 COVID"),
 DT[, regime2 := factor(regime2,
                        levels = c("Normal Periods", "2008-10 GFC", "2020-22 COVID"))]
 
+# Shock windows match the three-year sub-periods used throughout the paper:
+# GFC = 2008-2010, COVID = 2020-2022.
 shocks <- data.table(
   shock = c("GFC", "COVID"),
   start = as.Date(c("2008-01-01", "2020-01-01")),
-  end   = as.Date(c("2009-12-31", "2022-12-31"))
+  end   = as.Date(c("2010-12-31", "2022-12-31"))
 )
 
 
@@ -176,7 +177,7 @@ desc_tbl <- DT[, .(
 ), by = regime]
 
 full_row <- DT[, .(
-  regime  = "Full sample (2002-2024)",
+  regime  = "Full sample (2002-2025)",
   N       = .N,
   Mean    = mean(infl_mom, na.rm = TRUE),
   SD      = sd(infl_mom,   na.rm = TRUE),
@@ -199,7 +200,7 @@ print(xtable::xtable(
   tex_tbl,
   caption = paste("Descriptive statistics of monthly CPI",
                   "inflation (\\%, log-difference \\(\\times\\) 100)",
-                  "by sub-period, 2002:M1--2024:M12."),
+                  "by sub-period, 2002:M1--2025:M12."),
   label   = "tab:desc_regime",
   align   = c("l","l","r","r","r","r","r","r","r","r","r")),
   include.rownames = FALSE, booktabs = TRUE,
@@ -225,7 +226,7 @@ shock_bands <- list(
   geom_rect(data = shocks,
             aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
             fill = COL_BAND, alpha = 0.45, inherit.aes = FALSE),
-  annotate("text", x = as.Date("2009-01-01"), y = Inf,
+  annotate("text", x = as.Date("2009-07-01"), y = Inf,
            label = "GFC",   vjust = 1.6, size = 3,
            family = "serif"),
   annotate("text", x = as.Date("2021-06-01"), y = Inf,
@@ -264,7 +265,7 @@ p1c <- ggplot(DT, aes(x = date, y = roll_corr)) +
 
 fig1 <- (p1a / p1b / p1c) +
   plot_annotation(
-    #title    = "Inflation dynamics and labour market, 2002–2024",
+    #title    = "Inflation dynamics and labour market, 2002-2025",
     #subtitle = "Monthly CPI Inflation, vacancy-unemployment ratio, and rolling correlation",
     theme    = ec_annotation_theme
   )
@@ -295,19 +296,19 @@ p2 <- ggplot(DT, aes(x = vu_ratio, y = infl_mom, colour = regime2)) +
     values = scatter_colors,
     guide  = guide_legend(nrow=1, override.aes = list(size = 3, alpha = 0.85, linetype = 0))
   ) +
-  coord_cartesian(ylim = c(-1.67, 1.245)) + # Sets the exact y-axis boundaries
+  coord_cartesian(ylim = c(-2, 2)) +   # covers the full 2002-2025 range (min -1.79, max 1.37)
   labs(
     #title    = "The Phillips curve by regime",
-    #subtitle = "Monthly CPI Inflation vs. vacancy-unemployment ratio, 2002–2024",
+    #subtitle = "Monthly CPI Inflation vs. vacancy-unemployment ratio, 2002-2025",
     x        = "Vacancy to unemployment ratio",
     y        = "Monthly CPI Inflation (%)",
     #caption  = "OLS fit lines estimated separately per regime."
   ) +
   theme_ec(legend = "top", size = 20) +
   theme(
-    legend.margin = margin(t = -1, r = 90, b = 0, l = 0, unit = "pt"),
-    legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
-    plot.margin = margin(t = 0, r = 5.5, b = 5.5, l = 5.5, unit = "pt") 
+    legend.margin = ggplot2::margin(t = -1, r = 90, b = 0, l = 0, unit = "pt"),
+    legend.box.margin = ggplot2::margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+    plot.margin = ggplot2::margin(t = 0, r = 5.5, b = 5.5, l = 5.5, unit = "pt") 
   )
 p2
 ggsave(file.path(F_DESC, "fig2_phillips_scatter_by_regime.pdf"),

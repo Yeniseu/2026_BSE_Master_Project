@@ -5,8 +5,8 @@
 # Table (Tables/DM_Tests.tex): Diebold-Mariano statistics with the
 # Harvey-Leybourne-Newbold small-sample correction, absolute-error loss, for
 #   each shock window separately (GFC 2008-2010, COVID 2020-2022),
-#   the two windows pooled (Shock, 72 mo), the calm remainder (Calm, 204 mo),
-#   and the full sample (Full, 276 mo).
+#   the two windows pooled (Shock, 72 mo), the calm remainder (Calm, 216 mo),
+#   and the full sample (Full, 288 mo).
 # Each "family" is one forecast series (equal-weighted mean of its members).
 #
 # The individual three-year windows have only 36 observations and almost no
