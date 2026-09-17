@@ -89,9 +89,9 @@ gr_fluctuation <- function(e1, e2, h, m, power = 2) {
 STARS <- function(p) if (is.na(p)) "" else if (p < .01) "***" else if (p < .05) "**" else if (p < .1) "*" else ""
 abbr  <- function(x) {
   x <- gsub("Non-Linear and Variable Selection", "NL+VS", x, fixed = TRUE)
-  x <- gsub("Linear with Variable Selection",    "Lin+VS", x, fixed = TRUE)
-  x <- gsub("Non-Linear Phillips Curve",         "NL-PC", x, fixed = TRUE)
-  x <- gsub("Linear Phillips Curve",             "Lin-PC", x, fixed = TRUE)
+  x <- gsub("Linear with Variable Selection",    "VS", x, fixed = TRUE)
+  x <- gsub("Non-Linear Phillips Curve",         "NL", x, fixed = TRUE)
+  x <- gsub("Linear Phillips Curve",             "Lin.PC", x, fixed = TRUE)
   gsub("AR", "AR(4)", x, fixed = TRUE)
 }
 
