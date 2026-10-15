@@ -23,7 +23,9 @@
 # correctly discounts; that discrepancy confused readers.) The interaction is
 # reported under both losses.
 #
-# All p-values are ONE-SIDED. The hypothesis is directional and stated ex ante
+# The paper reports TWO-SIDED p-values in the main text (the one-sided
+# versions moved to Appendix B), so p2 is the column the tables now use.
+# Both are computed here. The hypothesis is directional and stated ex ante
 # (Section 3 of the paper): flexible models should be MORE accurate, and more
 # so in shocks, so the relevant alternatives are d < 0 (DM) and beta > 0
 # (interaction). Two-sided p-values are simply twice these.
@@ -51,16 +53,17 @@ dm_hln <- function(e1, e2, h, power = 2) {
 }
 
 # ---- Regime interaction test (Newey-West SE, Bartlett bandwidth h-1) --------
-interact_test <- function(e_base, e_flex, shock, h, power = 1) {
+interact_test <- function(e_base, e_flex, shock, h, power = 1, nw_lag = NULL) {
+  # nw_lag: Bartlett bandwidth; default h-1, the horizon-implied choice.
   d <- abs(e_base)^power - abs(e_flex)^power
   X <- cbind(1, as.numeric(shock)); n <- nrow(X)
   XtX_inv <- solve(crossprod(X))
   b <- as.numeric(XtX_inv %*% crossprod(X, d))
   u <- as.numeric(d - X %*% b)
   M <- crossprod(X * u)
-  L <- max(h - 1, 0)
+  L <- if (is.null(nw_lag)) max(h - 1, 0) else nw_lag
   if (L >= 1) for (l in 1:L) {
-    w  <- 1 - l / h
+    w  <- 1 - l / (L + 1)          # = 1 - l/h at the default bandwidth
     Xu <- X * u
     G  <- t(Xu[(l + 1):n, , drop = FALSE]) %*% Xu[1:(n - l), , drop = FALSE]
     M  <- M + w * (G + t(G))
@@ -84,6 +87,33 @@ gr_fluctuation <- function(e1, e2, h, m, power = 2) {
   sig <- sqrt(gam[1] + 2 * sum(gam[-1]))
   F <- sapply(1:(P - m + 1), function(t) sum(d[t:(t + m - 1)]) / (sqrt(m) * sig))
   list(centre = (1:(P - m + 1)) + floor(m / 2), F = F, cv = gr_cv(m / P))
+}
+
+# ---- interaction robustness settings ---------------------------------------
+# Both blocks below back claims made in the paper's "Formal tests of equal
+# predictive accuracy" section, so their output has to be reproducible.
+NW_LAGS     <- 2:24                 # bandwidth sweep reported in the text
+BOOT_BLOCKS <- c(6, 12, 24)         # moving-block bootstrap block lengths
+BOOT_B      <- 10000                # bootstrap replications
+BOOT_SEED   <- 20260917
+
+# ---- moving-block bootstrap of the regime interaction ----------------------
+# beta = mean(d | shock) - mean(d | calm) is algebraically the interaction
+# coefficient, so the bootstrap resamples (d, shock) pairs in blocks, refits
+# beta, recentres the replicate distribution and compares |beta_hat| to it.
+# This does not lean on asymptotic normality, which matters because the loss
+# differentials are heavy-tailed.
+boot_interaction <- function(dl, shock, block, B = BOOT_B) {
+  n <- length(dl); nb <- ceiling(n / block)
+  bhat <- mean(dl[shock == 1]) - mean(dl[shock == 0])
+  reps <- replicate(B, {
+    st  <- sample.int(n - block + 1, nb, replace = TRUE)
+    idx <- unlist(lapply(st, function(a) a:(a + block - 1)))[1:n]
+    y <- dl[idx]; sk <- shock[idx]
+    if (all(sk == 1) || all(sk == 0)) NA_real_ else mean(y[sk == 1]) - mean(y[sk == 0])
+  })
+  reps <- reps[!is.na(reps)]; reps <- reps - mean(reps)
+  c(beta = bhat, p2 = mean(abs(reps) >= abs(bhat)), reps = length(reps))
 }
 
 STARS <- function(p) if (is.na(p)) "" else if (p < .01) "***" else if (p < .05) "**" else if (p < .1) "*" else ""
@@ -141,6 +171,40 @@ for (h in HORIZONS) {
   print(it[, .(comparison, beta_mae = round(beta_mae, 3), p1_mae = round(p1_mae, 3),
                beta_mse = round(beta_mse, 3), p1_mse = round(p1_mse, 3))])
 
+  # ---- interaction robustness 1: Newey-West bandwidth sweep ----------------
+  # Paper claim: "as the Newey-West lag length is varied from 2 to 24, the
+  # two-sided p-value stays between X and Y" (both loss functions).
+  HEAD <- PAIRS[[3]]                                   # NL+VS vs Lin.PC
+  bw <- rbindlist(lapply(c(2, 1), function(pw) rbindlist(lapply(NW_LAGS, function(L) {
+    x <- interact_test(E(d, HEAD[2]), E(d, HEAD[1]), d$shock, h, power = pw, nw_lag = L)
+    data.table(comparison = paste(abbr(HEAD[1]), "vs", abbr(HEAD[2])),
+               loss = if (pw == 2) "MSE" else "MAE", nw_lag = L,
+               beta = x[["beta"]], se = x[["se"]], p1 = x[["p1"]], p2 = x[["p2"]])
+  }))))
+  fwrite(bw, file.path(P_PAPER, sprintf("interaction_bandwidth_h%d.csv", h)))
+  cat(sprintf("  NW bandwidth sweep, lags %d-%d, two-sided p: MSE %.3f-%.3f | MAE %.3f-%.3f\n",
+              min(NW_LAGS), max(NW_LAGS),
+              bw[loss == "MSE", min(p2)], bw[loss == "MSE", max(p2)],
+              bw[loss == "MAE", min(p2)], bw[loss == "MAE", max(p2)]))
+
+  # ---- interaction robustness 2: moving-block bootstrap --------------------
+  # Paper claim: "a moving-block bootstrap ... returns two-sided p-values
+  # between X and Y" for block lengths of 6, 12 and 24 months.
+  set.seed(BOOT_SEED)
+  bs <- rbindlist(lapply(c(2, 1), function(pw) rbindlist(lapply(BOOT_BLOCKS, function(bl) {
+    dl <- abs(E(d, HEAD[2]))^pw - abs(E(d, HEAD[1]))^pw
+    r  <- boot_interaction(dl, d$shock, bl)
+    data.table(comparison = paste(abbr(HEAD[1]), "vs", abbr(HEAD[2])),
+               loss = if (pw == 2) "MSE" else "MAE", block = bl,
+               beta = r[["beta"]], p2_boot = r[["p2"]], reps = r[["reps"]])
+  }))))
+  fwrite(bs, file.path(P_PAPER, sprintf("interaction_bootstrap_h%d.csv", h)))
+  cat(sprintf("  block bootstrap (B=%d, seed %d), two-sided p: MSE %.3f-%.3f | MAE %.3f-%.3f\n",
+              BOOT_B, BOOT_SEED,
+              bs[loss == "MSE", min(p2_boot)], bs[loss == "MSE", max(p2_boot)],
+              bs[loss == "MAE", min(p2_boot)], bs[loss == "MAE", max(p2_boot)]))
+  print(bs[, .(loss, block, beta = round(beta, 4), p2_boot = round(p2_boot, 4))])
+
   # ---- LaTeX tables ---------------------------------------------------------
   # Each statistic is printed with its p-value in parentheses on the line below
   # (classical presentation). Two variants of each table: one-sided p (main
@@ -177,22 +241,23 @@ for (h in HORIZONS) {
         r  <- dm[i]
         ir <- it[comparison == paste(abbr(r$model1), "vs", abbr(r$model2))]
         pS <- r[[pcol("Shock")]]; pC <- r[[pcol("Calm")]]
-        pQ <- ir[[paste0("p", v, "_mse")]]; pM <- ir[[paste0("p", v, "_mae")]]
+        pQ <- ir[[paste0("p", v, "_mse")]]
+        # MAE column dropped from the table (the paper reports squared-error loss
+        # throughout, to match the RMSE figures); beta_mae stays in the CSV.
         c(paste0("\\emph{", abbr(r$model1), "} vs \\emph{", abbr(r$model2), "} & ",
                  sprintf("$%.3f$%s", r[["d_Shock"]], STARS(pS)), " & ",
                  sprintf("$%.3f$%s", r[["d_Calm"]],  STARS(pC)), " & ",
-                 sprintf("$%.3f$%s", ir$beta_mse, STARS(pQ)), " & ",
-                 sprintf("$%.3f$%s", ir$beta_mae, STARS(pM)), " \\\\"),
+                 sprintf("$%.3f$%s", ir$beta_mse, STARS(pQ)), " \\\\"),
           paste0(" & ", paste(sprintf("\\footnotesize($%.3f$)",
-                              c(r[["se_Shock"]], r[["se_Calm"]], ir$se_mse, ir$se_mae)),
+                              c(r[["se_Shock"]], r[["se_Calm"]], ir$se_mse)),
                               collapse = " & "), " \\\\[4pt]"))
       }))
       writeLines(c(
-        "\\begin{tabular}{lcccc}", "\\toprule",
-        " & \\multicolumn{2}{c}{Loss differential (MSE)} & \\multicolumn{2}{c}{Regime interaction ($\\beta$)} \\\\",
-        "\\cmidrule(lr){2-3}\\cmidrule(lr){4-5}",
-        "Comparison & Shock & Calm & MSE & MAE \\\\",
-        sprintf(" & ($n{=}%d$) & ($n{=}%d$) & & \\\\",
+        "\\begin{tabular}{lccc}", "\\toprule",
+        " & \\multicolumn{2}{c}{Loss differential} & Regime interaction \\\\",
+        "\\cmidrule(lr){2-3}\\cmidrule(lr){4-4}",
+        "Comparison & Shock & Calm & $\\beta$ \\\\",
+        sprintf(" & ($n{=}%d$) & ($n{=}%d$) & \\\\",
                 sum(d$shock == 1), sum(d$shock == 0)), "\\midrule",
         body2, "\\bottomrule", "\\end{tabular}"),
         file.path(T_DIR, paste0("DM_Interaction", tag, ".tex")))
